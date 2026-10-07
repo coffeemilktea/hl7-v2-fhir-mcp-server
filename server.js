@@ -1991,9 +1991,49 @@ function createServer() {
 
 // ─── HTTP Server ─────────────────────────────────────────────────────────────
 
+// ─── Bind + auth ─────────────────────────────────────────────────────────────
+// Default: loopback only, no auth required (local Claude Desktop / Cursor).
+// Non-loopback binds (0.0.0.0, LAN, cloud) REQUIRE API_KEY — otherwise refuse
+// to start. Remote hosts are lab/synthetic data only; never expose without auth.
+
+const PORT = Number(process.env.PORT ?? 3001);
+const HOST = process.env.HOST ?? "127.0.0.1";
+const API_KEY = process.env.API_KEY || process.env.MCP_API_KEY || "";
+
+function isLoopbackHost(host) {
+  const h = String(host || "").toLowerCase();
+  return h === "127.0.0.1" || h === "::1" || h === "localhost";
+}
+
+if (!isLoopbackHost(HOST) && !API_KEY) {
+  console.error(
+    `Refusing to bind to non-loopback HOST=${HOST} without API_KEY (or MCP_API_KEY).\n` +
+      `Set HOST=127.0.0.1 for local use, or set API_KEY and send Authorization: Bearer <key>\n` +
+      `(or X-API-Key) when deploying remotely. Remote deployments are for lab/synthetic data only.`
+  );
+  process.exit(1);
+}
+
+function requireAuth(req, res, next) {
+  if (req.path === "/health") return next();
+  if (!API_KEY) return next();
+  const hdr = req.headers.authorization || "";
+  const bearer = hdr.startsWith("Bearer ") ? hdr.slice(7).trim() : "";
+  const key = bearer || String(req.headers["x-api-key"] || "").trim();
+  if (!key || key !== API_KEY) {
+    return res.status(401).json({
+      jsonrpc: "2.0",
+      error: { code: -32001, message: "Unauthorized — send Authorization: Bearer <API_KEY> or X-API-Key" },
+      id: null,
+    });
+  }
+  next();
+}
+
 const app = express();
-app.use(cors({ exposedHeaders: ["Mcp-Session-Id"] }));
+app.use(cors({ exposedHeaders: ["Mcp-Session-Id"] })); // local MCP clients; remote use MUST set API_KEY
 app.use(express.json({ limit: "8mb" }));
+app.use(requireAuth);
 
 /** sessionId -> { server, transport } */
 const sessions = new Map();
@@ -2067,10 +2107,12 @@ app.delete("/mcp", async (req, res) => {
 
 app.get("/health", (_req, res) => res.json({ status: "ok", server: "hl7-v251-to-fhir", fhirVersion: FHIR_VERSION }));
 
-const PORT = process.env.PORT ?? 3001;
-app.listen(PORT, () => {
-  console.log(`HL7 v2.5.1 → FHIR MCP server listening on http://localhost:${PORT}/mcp`);
-  console.log(`Health check: http://localhost:${PORT}/health`);
+app.listen(PORT, HOST, () => {
+  const where = isLoopbackHost(HOST) ? `http://localhost:${PORT}` : `http://${HOST}:${PORT}`;
+  console.log(`HL7 v2.5.1 → FHIR MCP server listening on ${where}/mcp (bind ${HOST})`);
+  console.log(`Health check: ${where}/health`);
+  if (API_KEY) console.log("API key auth enabled (Authorization: Bearer or X-API-Key)");
+  else console.log("No API_KEY set — acceptable only because HOST is loopback");
 });
 
 export { convert, toFhirDate, parse, SEGMENT_MAPS, MESSAGE_MAPS, DATATYPE_MAPS, CONCEPT_MAPS };
