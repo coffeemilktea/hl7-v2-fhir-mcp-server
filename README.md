@@ -79,6 +79,8 @@ In your project's `.claude/settings.json`:
 | Variable | Default | Description |
 |---|---|---|
 | `PORT` | `3001` | HTTP port the server listens on |
+| `HOST` | `127.0.0.1` | Bind address. Non-loopback requires `API_KEY`. |
+| `API_KEY` | _(unset)_ | Bearer / X-API-Key secret. Required when `HOST` is not loopback. |
 
 A health check is served at `/health`.
 
@@ -191,25 +193,41 @@ Once connected, you can ask Claude questions like:
 
 ---
 
-## Deploying remotely
+---
 
-Run on Railway or Render for a persistent endpoint you can share across machines.
+## ⚠️ Remote deploy warning (lab / synthetic only)
 
-**Railway**
+**Do not expose this server on the public internet without authentication.**
+
+Defaults are intentional for local use:
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `HOST` | `127.0.0.1` | Bind loopback only |
+| `PORT` | see above | HTTP port |
+| `API_KEY` (or `MCP_API_KEY`) | _(unset)_ | Optional on loopback; **required** for any non-loopback bind |
+
+If you set `HOST=0.0.0.0` (or any non-loopback address) and omit `API_KEY`, the process
+**refuses to start**. When `API_KEY` is set, every route except `/health` requires
+`Authorization: Bearer <API_KEY>` or `X-API-Key: <API_KEY>`.
+
+These servers hold HL7 reference/mapping logic and will happily accept whatever message
+you POST — treat remote instances as **lab or synthetic-data playgrounds**, never as a
+place to send real PHI.
+
+### Deploying remotely (only with auth)
+
+Railway, Render, and similar hosts typically bind `0.0.0.0`. That is fine **only** if you
+also set a strong `API_KEY` (and prefer putting the service behind your own gateway).
+
+**Do not** recommend or configure a wide-open Railway/Render deploy with open CORS and no
+auth — that was an earlier mistake in this README.
 
 ```bash
-railway init   # answer prompts
-railway up     # deploys; gives you https://yourapp.up.railway.app
+# Example: remote bind with auth
+HOST=0.0.0.0 API_KEY="$(openssl rand -hex 32)" PORT=3000 npm start
+# Clients: Authorization: Bearer <that key>
 ```
-
-Set the `PORT` env var if needed. Railway auto-detects Node.js.
-
-**Render**
-
-Create a new Web Service, point it at this repo, and set the Start Command to `node server.js`. The
-deployed URL becomes your MCP endpoint — `https://yourapp.onrender.com/mcp`.
-
----
 
 ## Related
 
