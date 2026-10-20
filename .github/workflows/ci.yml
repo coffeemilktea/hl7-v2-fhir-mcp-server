@@ -95,4 +95,4 @@ jobs:
         working-directory: hl7-v2-fhir-mcp-server
         run: |
           export FHIR_VALIDATOR_JAR="$HOME/.cache/fhir-validator/validator_cli.jar"
-          node --test --test-force-exit --test-reporter=spec test/validator.test.js
+          node --test --test-reporter=spec test/validator.test.js

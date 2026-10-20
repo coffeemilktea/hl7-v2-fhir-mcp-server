@@ -9,7 +9,7 @@ const cli = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "bi
 
 // The timeout and the finally matter: if an assertion fails while the child server is still
 // running, its open stdio pipes keep this test file's process alive and `node --test` never exits
-// (npm test also passes --test-force-exit as a backstop for a server that never answers).
+// (--test-force-exit is deliberately not used: on Node 24/26 it can end a run early and silently drop tests with exit 0.)
 test("bin/cli.js speaks MCP over stdio by default", { timeout: 30_000 }, async () => {
   const transport = new StdioClientTransport({ command: process.execPath, args: [cli], stderr: "pipe" });
   const client = new Client({ name: "t", version: "1" });
