@@ -48,7 +48,7 @@
 | Curated ConceptMaps | 13 tables / 130 codes | 13 / 137 |
 | IG reference data | none | 13 + 75 + 105 + 99 maps |
 | Tools / resources | 9 / 0 | 10 / 5 |
-| Tests | 0 | 63 (including the HL7 FHIR validator on 13 bundles: 0 errors) |
+| Tests | 0 | 62 (including the HL7 FHIR validator on 13 bundles: 0 errors) |
 
 ### Breaking changes
 
