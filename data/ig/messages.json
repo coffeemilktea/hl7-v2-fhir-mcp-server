@@ -1,0 +1,5703 @@
+{
+ "ADT_A01": {
+  "name": "ADT_A01",
+  "file": "mappings/messages/HL7 Message - FHIR R4_ ADT_A01 - Sheet1.csv",
+  "rows": [
+   {
+    "id": "ADT_A01.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Bundle",
+    "segmentMap": "MSH[Bundle]"
+   },
+   {
+    "id": "ADT_A01.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "MessageHeader[1]",
+    "segmentMap": "MSH[MessageHeader]"
+   },
+   {
+    "id": "ADT_A01.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "condition": "If there is a source in MSH-4, or known based on the configuration.",
+    "target": "Provenance[1]",
+    "segmentMap": "MSH[Provenance-Source]",
+    "references": "Provenance[1].target.reference=Bundle.id; Provenance[1].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A01.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Provenance[2]",
+    "segmentMap": "MSH[Provenance-Transformation]",
+    "references": "Provenance[2].target.reference=Bundle.id"
+   },
+   {
+    "id": "ADT_A01.ARV",
+    "syntax": "[{ ARV }]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.SFT",
+    "syntax": "[{ SFT }]",
+    "name": "Software Segment",
+    "condition": "If the software does not represent the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"derivation\""
+   },
+   {
+    "id": "ADT_A01.SFT",
+    "syntax": "[{ SFT }]",
+    "name": "Software Segment",
+    "condition": "If the software represents the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"source\""
+   },
+   {
+    "id": "ADT_A01.UAC",
+    "syntax": "[ UAC ]",
+    "name": "User Authentication Credential",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.EVN",
+    "syntax": "EVN",
+    "name": "Event Type",
+    "target": "Provenance[3]",
+    "segmentMap": "EVN[Provenance]",
+    "references": "Provenance[3].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A01.EVN",
+    "syntax": "EVN",
+    "name": "Event Type",
+    "condition": "IF EVN-5 NOT VALUED AND (MSH-22 IS VALUED OR MSH-4 IS VALUED)",
+    "target": "Provenance[3]",
+    "segmentMap": "MSH[Provenance-Operator]",
+    "references": "Provenance[3].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A01.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Patient[1]",
+    "segmentMap": "PID[Patient]"
+   },
+   {
+    "id": "ADT_A01.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Account",
+    "segmentMap": "PID[Account]",
+    "references": "Account.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A01.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "condition": "IF PID-33 AND PID-34 VALUED",
+    "target": "Provenance[4]",
+    "segmentMap": "PID[Provenance-Patient]",
+    "references": "Provenance.target.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A01.PD1",
+    "syntax": "[ PD1 ]",
+    "name": "Additional Demographics",
+    "target": "Patient[1]",
+    "segmentMap": "PD1[Patient]"
+   },
+   {
+    "id": "ADT_A01.PD1",
+    "syntax": "[ PD1 ]",
+    "name": "Additional Demographics",
+    "condition": "IF PD1-7 VALUED",
+    "target": "Observation[1]",
+    "segmentMap": "PD1[Observation-LivingWill]",
+    "references": "Observation[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A01.OH1",
+    "syntax": "[{ OH1 }]",
+    "name": "Employment Status",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.OH2",
+    "syntax": "[{ OH2 }]",
+    "name": "Past or Present Job",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.OH3",
+    "syntax": "[ OH3 ]",
+    "name": "Usual Work",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.OH4",
+    "syntax": "[{ OH4 }]",
+    "name": "Combat Zone Work",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01:follow:PID.ARV",
+    "syntax": "[{ ARV }]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01:follow:PID.ROL",
+    "syntax": "[{ ROL }]",
+    "name": "Role",
+    "condition": "IF ROL-3.1 EQUALS \"PP\" AND ROL-3.3 EQUALS \"HL70443\"",
+    "target": "Patient[1]",
+    "segmentMap": "ROL[Patient-GeneralPractitioner]"
+   },
+   {
+    "id": "ADT_A01:follow:PID.ROL",
+    "syntax": "[{ ROL }]",
+    "name": "Role",
+    "condition": "IF ROL-3.3 EQUALS \"HL70443\" AND ROL-3.1 IS NOT \"PP\"",
+    "target": "CareTeam[1]",
+    "segmentMap": "ROL[CareTeam]",
+    "references": "CareTeam[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A01:follow:PID.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "condition": "IF PRT-4 IS \"PP\"",
+    "target": "Patient[1]",
+    "segmentMap": "PRT[Patient-GeneralPractitioner-Practitioner]"
+   },
+   {
+    "id": "ADT_A01:follow:PID.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "condition": "IF PRT-4 IS IN (\"AD\", \"AP\", \"ARI\", \"AT\", \"CP\", \"FHCP\", \"OP\", \"PH\", \"PP\", \"PRI\", \"RP\", \"RT\", \"VP\", \"PO\")",
+    "target": "CareTeam[1]",
+    "segmentMap": "PRT[CareTeam]",
+    "references": "CareTeam[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A01.NEXT_OF_KIN",
+    "syntax": "[{",
+    "name": "--- NEXT_OF_KIN begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.NEXT_OF_KIN.NK1",
+    "syntax": "NK1",
+    "name": "Next of Kin / Associated Parties",
+    "condition": "IF NK1-3.1 NOT IN (\"EMR\", \"E\", \"F\", \"I\", \"S\")",
+    "target": "RelatedPerson[2]",
+    "segmentMap": "NK1[RelatedPerson]",
+    "references": "RelatedPerson[2].patient.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A01.NEXT_OF_KIN.NK1",
+    "syntax": "NK1",
+    "name": "Next of Kin / Associated Parties",
+    "condition": "IF NK1-3.1 NOT IN (\"EMR\", \"E\", \"F\", \"I\", \"S\")",
+    "target": "Patient[1]",
+    "segmentMap": "NK1[Patient]"
+   },
+   {
+    "id": "ADT_A01.NEXT_OF_KIN.NK1",
+    "syntax": "NK1",
+    "name": "Next of Kin / Associated Parties",
+    "condition": "IF NK1-3.1 IN (\"EMR\", \"E\", \"F\", \"I\", \"S\")",
+    "target": "Patient[1]",
+    "segmentMap": "NK1[Patient]"
+   },
+   {
+    "id": "ADT_A01.NEXT_OF_KIN.OH2",
+    "syntax": "[{ OH2 }]",
+    "name": "Past or Present Job",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.NEXT_OF_KIN.OH3",
+    "syntax": "[ OH3 ]",
+    "name": "Usual Work",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A01.NEXT_OF_KIN",
+    "syntax": "}]",
+    "name": "--- NEXT_OF_KIN end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Encounter[1]",
+    "segmentMap": "PV1[Encounter]",
+    "references": "Encounter[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A01.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-43 VALUED",
+    "target": "Basic",
+    "segmentMap": "PV1[Basic-EncounterHistory]",
+    "references": "Basic.extension-EncounterHistory.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A01.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Patient[1]",
+    "segmentMap": "PV1[Patient]"
+   },
+   {
+    "id": "ADT_A01.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-20 VALUE",
+    "target": "Coverage[1]",
+    "segmentMap": "PV1[Coverage]",
+    "references": "Coverage.beneficiary.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A01.PV2",
+    "syntax": "[ PV2 ]",
+    "name": "Patient Visit - Additional Info.",
+    "target": "Encounter[1]",
+    "segmentMap": "PV2[Encounter]"
+   },
+   {
+    "id": "ADT_A01:follow:PV1.ARV",
+    "syntax": "[{ ARV }]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01:follow:PV1.ROL",
+    "syntax": "[{ ROL }]",
+    "name": "Role",
+    "target": "Encounter[1]",
+    "segmentMap": "ROL[Encounter-PractitionerRole]"
+   },
+   {
+    "id": "ADT_A01:follow:PV1.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.DB1",
+    "syntax": "[{ DB1 }]",
+    "name": "Disability Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.OBSERVATION",
+    "syntax": "[{",
+    "name": "--- OBSERVATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count LESS THAN OR EQUALS 1 OR OBX-2 IS \"NA\"",
+    "target": "Observation[3]",
+    "segmentMap": "OBX[Observation]",
+    "references": "Observation[3].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A01.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count GREATER THAN 1 AND OBX-2 IS NOT \"NA\"",
+    "target": "Observation[3]",
+    "segmentMap": "OBX[Observation-Component]",
+    "references": "Observation[3].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A01.OBSERVATION.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A01.OBSERVATION",
+    "syntax": "}]",
+    "name": "--- OBSERVATION end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.AL1",
+    "syntax": "[{ AL1 }]",
+    "name": "Allergy Information",
+    "target": "AllergyIntolerance",
+    "segmentMap": "AL1[AllergyIntolerance]",
+    "references": "AllergyIntolerance.patient.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A01.IAM",
+    "syntax": "[{ IAM }]",
+    "name": "Patient Advers Reaction Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.DG1",
+    "syntax": "[{ DG1 }]",
+    "name": "Diagnosis Information",
+    "condition": "If in context of the patient",
+    "target": "Condition[1]",
+    "segmentMap": "DG1[Condition]",
+    "references": "Condition[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A01.DG1",
+    "syntax": "[{ DG1 }]",
+    "name": "Diagnosis Information",
+    "condition": "If in context of an encounter",
+    "target": "Encounter[1]",
+    "segmentMap": "DG1[Encounter]",
+    "references": "Encounter[1].diagnosis.reference=Condition[1].id"
+   },
+   {
+    "id": "ADT_A01.DG1",
+    "syntax": "[{ DG1 }]",
+    "name": "Diagnosis Information",
+    "condition": "If in context of a episode of care",
+    "target": "EpisodeOfCare[1]",
+    "segmentMap": "DG1[EpisodeOfCare]",
+    "references": "EpisodeOfCare.patient.reference=Patient[1].id; EpisodeOfCare.diagnosis.reference=Condition[1].id"
+   },
+   {
+    "id": "ADT_A01.DRG",
+    "syntax": "[ DRG ]",
+    "name": "Diagnosis Related Group",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.PROCEDURE",
+    "syntax": "[{",
+    "name": "--- PROCEDURE begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.PROCEDURE.PR1",
+    "syntax": "PR1",
+    "name": "Procedures",
+    "target": "Procedure",
+    "segmentMap": "PR1[Procedure]",
+    "references": "Procedure.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A01.PROCEDURE.ROL",
+    "syntax": "[{ ROL }]",
+    "name": "Role",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.PROCEDURE.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A01.PROCEDURE",
+    "syntax": "}]",
+    "name": "--- PROCEDURE end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.GT1",
+    "syntax": "[{ GT1 }]",
+    "name": "Guarantor",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.INSURANCE",
+    "syntax": "[{",
+    "name": "--- INSURANCE begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.INSURANCE.IN1",
+    "syntax": "IN1",
+    "name": "Insurance",
+    "target": "Coverage[1]",
+    "segmentMap": "IN1[Coverage]",
+    "references": "Coverage.beneficiary.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A01.INSURANCE.IN2",
+    "syntax": "[ IN2 ]",
+    "name": "Insurance Additional Info.",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.INSURANCE.IN3",
+    "syntax": "[{ IN3 }]",
+    "name": "Insurance Additional Info - Cert.",
+    "target": "CareTeam[1]",
+    "segmentMap": "IN3[CareTeam]",
+    "references": "CareTeam.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A01.INSURANCE.ROL",
+    "syntax": "[{ ROL }]",
+    "name": "Role",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.INSURANCE.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A0.INSURANCE.AUTHORIZATION",
+    "syntax": "[{",
+    "name": "--- AUTHORIZATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.INSURANCE.AUTHORIZATION.AUT",
+    "syntax": "AUT",
+    "name": "Authorization Record",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.INSURANCE.AUTHORIZATION.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A01.INSURANCE.AUTHORIZATION",
+    "syntax": "}]",
+    "name": "--- AUTHORIZATION end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.INSURANCE.REFERRAL",
+    "syntax": "[{",
+    "name": "--- REFERRAL begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.INSURANCE.REFERRAL.RF1",
+    "syntax": "RF1",
+    "name": "Referral Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.INSURANCE.REFERRAL.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A01.INSURANCE.REFERRAL",
+    "syntax": "}]",
+    "name": "--- REFERRAL end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A01.INSURANCE",
+    "syntax": "}]",
+    "name": "--- INSURANCE end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.ACC",
+    "syntax": "[ ACC ]",
+    "name": "Accident Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.UB1",
+    "syntax": "[ UB1 ]",
+    "name": "Universal Bill Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.UB2",
+    "syntax": "[ UB2 ]",
+    "name": "Universal Bill 92 Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A01.PDA",
+    "syntax": "[ PDA ]",
+    "name": "Patient Death and Autopsy",
+    "target": null,
+    "segmentMap": null
+   }
+  ]
+ },
+ "ADT_A02": {
+  "name": "ADT_A02",
+  "file": "mappings/messages/HL7 Message - FHIR R4_ ADT_A02 - Sheet1.csv",
+  "rows": [
+   {
+    "id": "ADT_A02.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Bundle",
+    "segmentMap": "MSH[Bundle]"
+   },
+   {
+    "id": "ADT_A02.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "MessageHeader[1]",
+    "segmentMap": "MSH[MessageHeader]"
+   },
+   {
+    "id": "ADT_A02.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "condition": "If there is a source in MSH-4, or known based on the configuration.",
+    "target": "Provenance[1]",
+    "segmentMap": "MSH[Provenance-Source]",
+    "references": "Provenance[1].target.reference=Bundle.id; Provenance[1].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A02.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Provenance[2]",
+    "segmentMap": "MSH[Provenance-Transformation]",
+    "references": "Provenance[2].target.reference=Bundle.id"
+   },
+   {
+    "id": "ADT_A02.ARV",
+    "syntax": "[{ ARV }]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A02.SFT",
+    "syntax": "[{ SFT }]",
+    "name": "Software Segment",
+    "condition": "If the software does represent not the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"derivation\""
+   },
+   {
+    "id": "ADT_A02.SFT",
+    "syntax": "[{ SFT }]",
+    "name": "Software Segment",
+    "condition": "If the software represents the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"source\""
+   },
+   {
+    "id": "ADT_A02.UAC",
+    "syntax": "[ UAC ]",
+    "name": "User Authentication Credential",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A02.EVN",
+    "syntax": "EVN",
+    "name": "Event Type",
+    "target": "Provenance[3]",
+    "segmentMap": "EVN[Provenance]",
+    "references": "Provenance[3].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A02.EVN",
+    "syntax": "EVN",
+    "name": "Event Type",
+    "condition": "IF EVN-5 NOT VALUED AND (MSH-22 IS VALUED OR MSH-4 IS VALUED)",
+    "target": "Provenance[3]",
+    "segmentMap": "MSH[Provenance-Operator]",
+    "references": "Provenance[3].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A02.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Patient[1]",
+    "segmentMap": "PID[Patient]"
+   },
+   {
+    "id": "ADT_A02.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Account",
+    "segmentMap": "PID[Account]",
+    "references": "Account.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A02.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "condition": "IF PID-33 AND PID-34 VALUED",
+    "target": "Provenance[4]",
+    "segmentMap": "PID[Provenance-Patient]",
+    "references": "Provenance.target.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A02.PD1",
+    "syntax": "[ PD1 ]",
+    "name": "Additional Demographics",
+    "target": "Patient[1]",
+    "segmentMap": "PD1[Patient]"
+   },
+   {
+    "id": "ADT_A02.PD1",
+    "syntax": "[ PD1 ]",
+    "name": "Additional Demographics",
+    "condition": "IF PD1-7 VALUED",
+    "target": "Observation[1]",
+    "segmentMap": "PD1[Observation-LivingWill]",
+    "references": "Observation[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A02.OH1",
+    "syntax": "[{ OH1 }]",
+    "name": "Employment Status",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A02.OH2",
+    "syntax": "[{ OH2 }]",
+    "name": "Past or Present Job",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A02.OH3",
+    "syntax": "[ OH3 ]",
+    "name": "Usual Work",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A02.OH4",
+    "syntax": "[{ OH4 }]",
+    "name": "Combat Zone Work",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A02:follow:PID.ARV",
+    "syntax": "[{ ARV }]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A02:follow:PID.ROL",
+    "syntax": "[{ ROL }]",
+    "name": "Role",
+    "condition": "IF ROL-3.1 EQUALS \"PP\" AND ROL-3.3 EQUALS \"HL70443\"",
+    "target": "Patient[1]",
+    "segmentMap": "ROL[Patient-GeneralPractitioner]"
+   },
+   {
+    "id": "ADT_A02:follow:PID.ROL",
+    "syntax": "[{ ROL }]",
+    "name": "Role",
+    "condition": "IF ROL-3.3 EQUALS \"HL70443\" AND ROL-3.1 IS NOT \"PP\"",
+    "target": "CareTeam[1]",
+    "segmentMap": "ROL[CareTeam]",
+    "references": "CareTeam[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A02:follow:PID.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "condition": "IF PRT-4 IS \"PP\"",
+    "target": "Patient[1]",
+    "segmentMap": "PRT[Patient-GeneralPractitioner-Practitioner]"
+   },
+   {
+    "id": "ADT_A02:follow:PID.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "condition": "IF PRT-4 IS IN (\"AD\", \"AP\", \"ARI\", \"AT\", \"CP\", \"FHCP\", \"OP\", \"PH\", \"PP\", \"PRI\", \"RP\", \"RT\", \"VP\", \"PO\")",
+    "target": "CareTeam[1]",
+    "segmentMap": "PRT[CareTeam]",
+    "references": "CareTeam[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A02.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Encounter[1]",
+    "segmentMap": "PV1[Encounter]",
+    "references": "Encounter[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A02.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-43 VALUED",
+    "target": "Basic",
+    "segmentMap": "PV1[Basic-EncounterHistory]",
+    "references": "Basic.extension-EncounterHistory.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A02.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Patient[1]",
+    "segmentMap": "PV1[Patient]"
+   },
+   {
+    "id": "ADT_A02.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-20 VALUE",
+    "target": "Coverage[1]",
+    "segmentMap": "PV1[Coverage]",
+    "references": "Coverage.beneficiary.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A02.PV2",
+    "syntax": "[ PV2 ]",
+    "name": "Patient Visit - Additional Info.",
+    "target": "Encounter[1]",
+    "segmentMap": "PV2[Encounter]"
+   },
+   {
+    "id": "ADT_A02:follow:PV1.ARV",
+    "syntax": "[{ ARV }]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A02:follow:PV1.ROL",
+    "syntax": "[{ ROL }]",
+    "name": "Role",
+    "target": "Encounter[1]",
+    "segmentMap": "ROL[Encounter-PractitionerRole]"
+   },
+   {
+    "id": "ADT_A02:follow:PV1.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A02.DB1",
+    "syntax": "[{ DB1 }]",
+    "name": "Disability Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A02.OBSERVATION",
+    "syntax": "[{",
+    "name": "--- OBSERVATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A02.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count LESS THAN OR EQUALS 1 OR OBX-2 IS \"NA\"",
+    "target": "Observation[3]",
+    "segmentMap": "OBX[Observation]",
+    "references": "Observation[3].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A02.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count GREATER THAN 1 AND OBX-2 IS NOT \"NA\"",
+    "target": "Observation[3]",
+    "segmentMap": "OBX[Observation-Component]",
+    "references": "Observation[3].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A02.OBSERVATION.OBX",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A02.OBSERVATION",
+    "syntax": "}]",
+    "name": "--- OBSERVATION end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A02.PDA",
+    "syntax": "[ PDA ]",
+    "name": "Patient Death and Autopsy",
+    "target": null,
+    "segmentMap": null
+   }
+  ]
+ },
+ "ADT_A05": {
+  "name": "ADT_A05",
+  "file": "mappings/messages/HL7 Message - FHIR R4_ ADT_A05 - Sheet1.csv",
+  "rows": [
+   {
+    "id": "ADT_A05.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Bundle",
+    "segmentMap": "MSH[Bundle]"
+   },
+   {
+    "id": "ADT_A05.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "MessageHeader[1]",
+    "segmentMap": "MSH[MessageHeader]"
+   },
+   {
+    "id": "ADT_A05.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "condition": "If there is a source in MSH-4, or known based on the configuration.",
+    "target": "Provenance[1]",
+    "segmentMap": "MSH[Provenance-Source]",
+    "references": "Provenance[1].target.reference=Bundle.id; Provenance[1].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A05.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Provenance[2]",
+    "segmentMap": "MSH[Provenance-Transformation]",
+    "references": "Provenance[2].target.reference=Bundle.id"
+   },
+   {
+    "id": "ADT_A05.ARV",
+    "syntax": "[{ ARV }]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.SFT",
+    "syntax": "[{ SFT }]",
+    "name": "Software Segment",
+    "condition": "If the software does represent not the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"derivation\""
+   },
+   {
+    "id": "ADT_A05.SFT",
+    "syntax": "[{ SFT }]",
+    "name": "Software Segment",
+    "condition": "If the software represents the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"source\""
+   },
+   {
+    "id": "ADT_A05.UAC",
+    "syntax": "[ UAC ]",
+    "name": "User Authentication Credential",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.EVN",
+    "syntax": "EVN",
+    "name": "Event Type",
+    "target": "Provenance[3]",
+    "segmentMap": "EVN[Provenance]",
+    "references": "Provenance[3].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A05.EVN",
+    "syntax": "EVN",
+    "name": "Event Type",
+    "condition": "IF EVN-5 NOT VALUED AND (MSH-22 IS VALUED OR MSH-4 IS VALUED)",
+    "target": "Provenance[3]",
+    "segmentMap": "MSH[Provenance-Operator]",
+    "references": "Provenance[3].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A05.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Patient[1]",
+    "segmentMap": "PID[Patient]"
+   },
+   {
+    "id": "ADT_A05.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Account",
+    "segmentMap": "PID[Account]",
+    "references": "Account.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A05.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "condition": "IF PID-33 AND PID-34 VALUED",
+    "target": "Provenance[4]",
+    "segmentMap": "PID[Provenance-Patient]",
+    "references": "Provenance.target.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A05.PD1",
+    "syntax": "[ PD1 ]",
+    "name": "Additional Demographics",
+    "target": "Patient[1]",
+    "segmentMap": "PD1[Patient]"
+   },
+   {
+    "id": "ADT_A01.PD1",
+    "syntax": "[ PD1 ]",
+    "name": "Additional Demographics",
+    "condition": "IF PD1-7 VALUED",
+    "target": "Observation[1]",
+    "segmentMap": "PD1[Observation-LivingWill]",
+    "references": "Observation[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A05.OH1",
+    "syntax": "[{ OH1 }]",
+    "name": "Employment Status",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.OH2",
+    "syntax": "[{ OH2 }]",
+    "name": "Past or Present Job",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.OH3",
+    "syntax": "[ OH3 ]",
+    "name": "Usual Work",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.OH4",
+    "syntax": "[{ OH4 }]",
+    "name": "Combat Zone Work",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05:follow:PID.ARV",
+    "syntax": "[{ ARV }]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05:follow:PID.ROL",
+    "syntax": "[{ ROL }]",
+    "name": "Role",
+    "condition": "IF ROL-3.1 EQUALS \"PP\" AND ROL-3.3 EQUALS \"HL70443\"",
+    "target": "Patient[1]",
+    "segmentMap": "ROL[Patient-GeneralPractitioner]"
+   },
+   {
+    "id": "ADT_A05:follow:PID.ROL",
+    "syntax": "[{ ROL }]",
+    "name": "Role",
+    "condition": "IF ROL-3.3 EQUALS \"HL70443\" AND ROL-3.1 IS NOT \"PP\"",
+    "target": "CareTeam[1]",
+    "segmentMap": "ROL[CareTeam]",
+    "references": "CareTeam[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A05:follow:PID.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "condition": "IF PRT-4 IS \"PP\"",
+    "target": "Patient[1]",
+    "segmentMap": "PRT[Patient-GeneralPractitioner-PractitionerRole]"
+   },
+   {
+    "id": "ADT_A05:follow:PID.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "condition": "IF PRT-4 IS IN (\"AD\", \"AP\", \"ARI\", \"AT\", \"CP\", \"FHCP\", \"OP\", \"PH\", \"PP\", \"PRI\", \"RP\", \"RT\", \"VP\", \"PO\")",
+    "target": "CareTeam[1]",
+    "segmentMap": "PRT[CareTeam]",
+    "references": "CareTeam[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A05.NEXT_OF_KIN",
+    "syntax": "[{",
+    "name": "--- NEXT_OF_KIN begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.NEXT_OF_KIN.NK1",
+    "syntax": "NK1",
+    "name": "Next of Kin / Associated Parties",
+    "target": "RelatedPerson[2]",
+    "segmentMap": "NK1[RelatedPerson]",
+    "references": "RelatedPerson[2].patient.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A05.NEXT_OF_KIN.NK1",
+    "syntax": "NK1",
+    "name": "Next of Kin / Associated Parties",
+    "target": "Patient[1]",
+    "segmentMap": "NK1[Patient]"
+   },
+   {
+    "id": "ADT_A05.NEXT_OF_KIN.OH2",
+    "syntax": "[{ OH2 }]",
+    "name": "Past or Present Job",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.NEXT_OF_KIN.OH3",
+    "syntax": "[ OH3 ]",
+    "name": "Usual Work",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A05.NEXT_OF_KIN",
+    "syntax": "}]",
+    "name": "--- NEXT_OF_KIN end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Encounter[1]",
+    "segmentMap": "PV1[Encounter]",
+    "references": "Encounter[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A05.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-43 VALUED",
+    "target": "Basic",
+    "segmentMap": "PV1[Basic-EncounterHistory]",
+    "references": "Basic.extension-EncounterHistory.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A05.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Patient[1]",
+    "segmentMap": "PV1[Patient]"
+   },
+   {
+    "id": "ADT_A05.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-20 VALUE",
+    "target": "Coverage[1]",
+    "segmentMap": "PV1[Coverage]",
+    "references": "Coverage.beneficiary.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A05.PV2",
+    "syntax": "[ PV2 ]",
+    "name": "Patient Visit - Additional Info.",
+    "target": "Encounter[1]",
+    "segmentMap": "PV2[Encounter]"
+   },
+   {
+    "id": "ADT_A05:follow:PV1.ARV",
+    "syntax": "[{ ARV }]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05:follow:PV1.ROL",
+    "syntax": "[{ ROL }]",
+    "name": "Role",
+    "target": "Encounter[1]",
+    "segmentMap": "ROL[Encounter-PractitionerRole]"
+   },
+   {
+    "id": "ADT_A05:follow:PV1.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.DB1",
+    "syntax": "[{ DB1 }]",
+    "name": "Disability Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.OBSERVATION",
+    "syntax": "[{",
+    "name": "--- OBSERVATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count LESS THAN OR EQUALS 1 OR OBX-2 IS \"NA\"",
+    "target": "Observation[3]",
+    "segmentMap": "OBX[Observation]",
+    "references": "Observation[3].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A05.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count GREATER THAN 1 AND OBX-2 IS NOT \"NA\"",
+    "target": "Observation[3]",
+    "segmentMap": "OBX[Observation-Component]",
+    "references": "Observation[3].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A05.OBSERVATION.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A05.OBSERVATION",
+    "syntax": "}]",
+    "name": "--- OBSERVATION end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.AL1",
+    "syntax": "[{ AL1 }]",
+    "name": "Allergy Information",
+    "target": "AllergyIntolerance",
+    "segmentMap": "AL1[AllergyIntolerance]",
+    "references": "AllergyIntolerance.patient.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A05.IAM",
+    "syntax": "[{ IAM }]",
+    "name": "Patient Advers Reaction Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.DG1",
+    "syntax": "[{ DG1 }]",
+    "name": "Diagnosis Information",
+    "condition": "If in context of the patient",
+    "target": "Condition[1]",
+    "segmentMap": "DG1[Condition]",
+    "references": "Condition[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A05.DG1",
+    "syntax": "[{ DG1 }]",
+    "name": "Diagnosis Information",
+    "condition": "If in context of an encounter",
+    "target": "Encounter[1]",
+    "segmentMap": "DG1[Encounter]",
+    "references": "Encounter[1].diagnosis.reference=Condition[1].id"
+   },
+   {
+    "id": "ADT_A05.DG1",
+    "syntax": "[{ DG1 }]",
+    "name": "Diagnosis Information",
+    "condition": "If in context of a episode of care",
+    "target": "EpisodeOfCare[1]",
+    "segmentMap": "DG1[EpisodeOfCare]",
+    "references": "EpisodeOfCare.patient.reference=Patient[1].id; EpisodeOfCare.diagnosis.reference=Condition[1].id"
+   },
+   {
+    "id": "ADT_A05.DRG",
+    "syntax": "[ DRG ]",
+    "name": "Diagnosis Related Group",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.PROCEDURE",
+    "syntax": "[{",
+    "name": "--- PROCEDURE begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.PROCEDURE.PR1",
+    "syntax": "PR1",
+    "name": "Procedures",
+    "target": "Procedure",
+    "segmentMap": "PR1[Procedure]",
+    "references": "Procedure.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A05.PROCEDURE.ROL",
+    "syntax": "[{ ROL }]",
+    "name": "Role",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.PROCEDURE.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A05.PROCEDURE",
+    "syntax": "}]",
+    "name": "--- PROCEDURE end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.GT1",
+    "syntax": "[{ GT1 }]",
+    "name": "Guarantor",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.INSURANCE",
+    "syntax": "[{",
+    "name": "--- INSURANCE begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.INSURANCE.IN1",
+    "syntax": "IN1",
+    "name": "Insurance",
+    "target": "Coverage[1]",
+    "segmentMap": "IN1[Coverage]"
+   },
+   {
+    "id": "ADT_A05.INSURANCE.IN2",
+    "syntax": "[ IN2 ]",
+    "name": "Insurance Additional Info.",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.INSURANCE.IN3",
+    "syntax": "[{ IN3 }]",
+    "name": "Insurance Additional Info - Cert.",
+    "target": "CareTeam[1]",
+    "segmentMap": "IN3[CareTeam]",
+    "references": "CareTeam.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A05.INSURANCE.ROL",
+    "syntax": "[{ ROL }]",
+    "name": "Role",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.INSURANCE.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A0.INSURANCE.AUTHORIZATION",
+    "syntax": "[{",
+    "name": "--- AUTHORIZATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.INSURANCE.AUTHORIZATION.AUT",
+    "syntax": "AUT",
+    "name": "Authorization Record",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.INSURANCE.AUTHORIZATION.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A05.INSURANCE.AUTHORIZATION",
+    "syntax": "}]",
+    "name": "--- AUTHORIZATION end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.INSURANCE.REFERRAL",
+    "syntax": "[{",
+    "name": "--- REFERRAL begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.INSURANCE.REFERRAL.RF1",
+    "syntax": "RF1",
+    "name": "Referral Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.INSURANCE.REFERRAL.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A05.INSURANCE.REFERRAL",
+    "syntax": "}]",
+    "name": "--- REFERRAL end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A05.INSURANCE",
+    "syntax": "}]",
+    "name": "--- INSURANCE end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.ACC",
+    "syntax": "[ ACC ]",
+    "name": "Accident Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.UB1",
+    "syntax": "[ UB1 ]",
+    "name": "Universal Bill Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A05.UB2",
+    "syntax": "[ UB2 ]",
+    "name": "Universal Bill 92 Information",
+    "target": null,
+    "segmentMap": null
+   }
+  ]
+ },
+ "ADT_A06": {
+  "name": "ADT_A06",
+  "file": "mappings/messages/HL7 Message - FHIR R4_ ADT_A06 - Sheet1.csv",
+  "rows": [
+   {
+    "id": "ADT_A06.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Bundle",
+    "segmentMap": "MSH[Bundle]"
+   },
+   {
+    "id": "ADT_A06.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "MessageHeader[1]",
+    "segmentMap": "MSH[MessageHeader]"
+   },
+   {
+    "id": "ADT_A06.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "condition": "If there is a source in MSH-4, or known based on the configuration.",
+    "target": "Provenance[1]",
+    "segmentMap": "MSH[Provenance-Source]",
+    "references": "Provenance[1].target.reference=Bundle.id; Provenance[1].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A06.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Provenance[2]",
+    "segmentMap": "MSH[Provenance-Transformation]",
+    "references": "Provenance[2].target.reference=Bundle.id"
+   },
+   {
+    "id": "ADT_A06.ARV",
+    "syntax": "[{ ARV }]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.SFT",
+    "syntax": "[{ SFT }]",
+    "name": "Software Segment",
+    "condition": "If the software does represent not the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"derivation\""
+   },
+   {
+    "id": "ADT_A06.SFT",
+    "syntax": "[{ SFT }]",
+    "name": "Software Segment",
+    "condition": "If the software represents the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"source\""
+   },
+   {
+    "id": "ADT_A06.UAC",
+    "syntax": "[ UAC ]",
+    "name": "User Authentication Credential",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.EVN",
+    "syntax": "EVN",
+    "name": "Event Type",
+    "target": "Provenance[3]",
+    "segmentMap": "EVN[Provenance]",
+    "references": "Provenance[3].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A06.EVN",
+    "syntax": "EVN",
+    "name": "Event Type",
+    "condition": "IF EVN-5 NOT VALUED AND (MSH-22 IS VALUED OR MSH-4 IS VALUED)",
+    "target": "Provenance[3]",
+    "segmentMap": "MSH[Provenance-Operator]",
+    "references": "Provenance[3].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A06.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Patient[1]",
+    "segmentMap": "PID[Patient]"
+   },
+   {
+    "id": "ADT_A06.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Account[1]",
+    "segmentMap": "PID[Account]",
+    "references": "Account[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A06.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "condition": "IF PID-33 AND PID-34 VALUED",
+    "target": "Provenance[4]",
+    "segmentMap": "PID[Provenance-Patient]",
+    "references": "Provenance[4].target.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A06.PD1",
+    "syntax": "[ PD1 ]",
+    "name": "Additional Demographics",
+    "target": "Patient[1]",
+    "segmentMap": "PD1[Patient]"
+   },
+   {
+    "id": "ADT_A01.PD1",
+    "syntax": "[ PD1 ]",
+    "name": "Additional Demographics",
+    "condition": "IF PD1-7 VALUED",
+    "target": "Observation[1]",
+    "segmentMap": "PD1[Observation-LivingWill]",
+    "references": "Observation[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A06.OH1",
+    "syntax": "[{ OH1 }]",
+    "name": "Employment Status",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.OH2",
+    "syntax": "[{ OH2 }]",
+    "name": "Past or Present Job",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.OH3",
+    "syntax": "[ OH3 ]",
+    "name": "Usual Work",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.OH4",
+    "syntax": "[{ OH4 }]",
+    "name": "Combat Zone Work",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06:follow:PID.ARV",
+    "syntax": "[{ ARV }]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06:follow:PID.ROL",
+    "syntax": "[{ ROL }]",
+    "name": "Role",
+    "condition": "IF ROL-3.1 EQUALS \"PP\" AND ROL-3.3 EQUALS \"HL70443\"",
+    "target": "Patient[1]",
+    "segmentMap": "ROL[Patient-GeneralPractitioner]"
+   },
+   {
+    "id": "ADT_A06:follow:PID.ROL",
+    "syntax": "[{ ROL }]",
+    "name": "Role",
+    "condition": "IF ROL-3.3 EQUALS \"HL70443\" AND ROL-3.1 IS NOT \"PP\"",
+    "target": "CareTeam[1]",
+    "segmentMap": "ROL[CareTeam]",
+    "references": "CareTeam[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A06:follow:PID.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "condition": "IF PRT-4 IS \"PP\"",
+    "target": "Patient[1]",
+    "segmentMap": "PRT[Patient-GeneralPractitioner-Practitioner]"
+   },
+   {
+    "id": "ADT_A06:follow:PID.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "condition": "IF PRT-4 IS IN (\"AD\", \"AP\", \"ARI\", \"AT\", \"CP\", \"FHCP\", \"OP\", \"PH\", \"PP\", \"PRI\", \"RP\", \"RT\", \"VP\", \"PO\")",
+    "target": "CareTeam[1]",
+    "segmentMap": "PRT[CareTeam]",
+    "references": "CareTeam[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A06.MRG",
+    "syntax": "[ MRG ]",
+    "name": "Merge Information",
+    "target": "Account[2]",
+    "segmentMap": "MRG[Account]",
+    "references": "Account[2].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A06.NEXT_OF_KIN",
+    "syntax": "[{",
+    "name": "--- NEXT_OF_KIN begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.NEXT_OF_KIN.NK1",
+    "syntax": "NK1",
+    "name": "Next of Kin / Associated Parties",
+    "target": "RelatedPerson[2]",
+    "segmentMap": "NK1[RelatedPerson]",
+    "references": "RelatedPerson[2].patient.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A06.NEXT_OF_KIN.NK1",
+    "syntax": "NK1",
+    "name": "Next of Kin / Associated Parties",
+    "target": "Patient[1]",
+    "segmentMap": "NK1[Patient]"
+   },
+   {
+    "id": "ADT_A06.NEXT_OF_KIN.OH2",
+    "syntax": "[{ OH2 }]",
+    "name": "Past or Present Job",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.NEXT_OF_KIN.OH3",
+    "syntax": "[ OH3 ]",
+    "name": "Usual Work",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A06.NEXT_OF_KIN",
+    "syntax": "}]",
+    "name": "--- NEXT_OF_KIN end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Encounter[1]",
+    "segmentMap": "PV1[Encounter]",
+    "references": "Encounter[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A06.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-43 VALUED",
+    "target": "Basic",
+    "segmentMap": "PV1[Basic-EncounterHistory]",
+    "references": "Basic.extension-EncounterHistory.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A06.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Patient[1]",
+    "segmentMap": "PV1[Patient]"
+   },
+   {
+    "id": "ADT_A06.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-20 VALUE",
+    "target": "Coverage[1]",
+    "segmentMap": "PV1[Coverage]",
+    "references": "Coverage.beneficiary.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A06.PV2",
+    "syntax": "[ PV2 ]",
+    "name": "Patient Visit - Additional Info.",
+    "target": "Encounter[1]",
+    "segmentMap": "PV2[Encounter]"
+   },
+   {
+    "id": "ADT_A06:follow:PV1.ARV",
+    "syntax": "[{ ARV }]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06:follow:PV1.ROL",
+    "syntax": "[{ ROL }]",
+    "name": "Role",
+    "target": "Encounter[1]",
+    "segmentMap": "ROL[Encounter-PractitionerRole]"
+   },
+   {
+    "id": "ADT_A06:follow:PV1.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.DB1",
+    "syntax": "[{ DB1 }]",
+    "name": "Disability Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.OBSERVATION",
+    "syntax": "[{",
+    "name": "--- OBSERVATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count LESS THAN OR EQUALS 1 OR OBX-2 IS \"NA\"",
+    "target": "Observation[3]",
+    "segmentMap": "OBX[Observation]",
+    "references": "Observation[3].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A06.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count GREATER THAN 1 AND OBX-2 IS NOT \"NA\"",
+    "target": "Observation[3]",
+    "segmentMap": "OBX[Observation-Component]",
+    "references": "Observation[3].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A06.OBSERVATION.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A06.OBSERVATION",
+    "syntax": "}]",
+    "name": "--- OBSERVATION end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.AL1",
+    "syntax": "[{ AL1 }]",
+    "name": "Allergy Information",
+    "target": "AllergyIntolerance",
+    "segmentMap": "AL1[AllergyIntolerance]",
+    "references": "AllergyIntolerance.patient.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A06.IAM",
+    "syntax": "[{ IAM }]",
+    "name": "Patient Advers Reaction Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.DG1",
+    "syntax": "[{ DG1 }]",
+    "name": "Diagnosis Information",
+    "condition": "If in context of the patient",
+    "target": "Condition[1]",
+    "segmentMap": "DG1[Condition]",
+    "references": "Condition[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A06.DG1",
+    "syntax": "[{ DG1 }]",
+    "name": "Diagnosis Information",
+    "condition": "If in context of an encounter",
+    "target": "Encounter[1]",
+    "segmentMap": "DG1[Encounter]",
+    "references": "Encounter[1].diagnosis.reference=Condition[1].id"
+   },
+   {
+    "id": "ADT_A06.DG1",
+    "syntax": "[{ DG1 }]",
+    "name": "Diagnosis Information",
+    "condition": "If in context of a episode of care",
+    "target": "EpisodeOfCare[1]",
+    "segmentMap": "DG1[EpisodeOfCare]",
+    "references": "EpisodeOfCare.patient.reference=Patient[1].id; EpisodeOfCare.diagnosis.reference=Condition[1].id"
+   },
+   {
+    "id": "ADT_A06.DRG",
+    "syntax": "[ DRG ]",
+    "name": "Diagnosis Related Group",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.PROCEDURE",
+    "syntax": "[{",
+    "name": "--- PROCEDURE begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.PROCEDURE.PR1",
+    "syntax": "PR1",
+    "name": "Procedures",
+    "target": "Procedure",
+    "segmentMap": "PR1[Procedure]",
+    "references": "Procedure.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A06.PROCEDURE.ROL",
+    "syntax": "[{ ROL }]",
+    "name": "Role",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.PROCEDURE.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A06.PROCEDURE",
+    "syntax": "}]",
+    "name": "--- PROCEDURE end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.GT1",
+    "syntax": "[{ GT1 }]",
+    "name": "Guarantor",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.INSURANCE",
+    "syntax": "[{",
+    "name": "--- INSURANCE begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.INSURANCE.IN1",
+    "syntax": "IN1",
+    "name": "Insurance",
+    "target": "Coverage[1]",
+    "segmentMap": "IN1[Coverage]"
+   },
+   {
+    "id": "ADT_A06.INSURANCE.IN2",
+    "syntax": "[ IN2 ]",
+    "name": "Insurance Additional Info.",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.INSURANCE.IN3",
+    "syntax": "[{ IN3 }]",
+    "name": "Insurance Additional Info - Cert.",
+    "target": "CareTeam[1].participant[2]",
+    "segmentMap": "IN3[CareTeam]",
+    "references": "CareTeam[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A06.INSURANCE.ROL",
+    "syntax": "[{ ROL }]",
+    "name": "Role",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.INSURANCE.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A06.INSURANCE",
+    "syntax": "}]",
+    "name": "--- INSURANCE end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.ACC",
+    "syntax": "[ ACC ]",
+    "name": "Accident Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.UB1",
+    "syntax": "[ UB1 ]",
+    "name": "Universal Bill Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A06.UB2",
+    "syntax": "[ UB2 ]",
+    "name": "Universal Bill 92 Information",
+    "target": null,
+    "segmentMap": null
+   }
+  ]
+ },
+ "ADT_A09": {
+  "name": "ADT_A09",
+  "file": "mappings/messages/HL7 Message - FHIR R4_ ADT_A09 - Sheet1.csv",
+  "rows": [
+   {
+    "id": "ADT_A09.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Bundle",
+    "segmentMap": "MSH[Bundle]"
+   },
+   {
+    "id": "ADT_A09.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "MessageHeader[1]",
+    "segmentMap": "MSH[MessageHeader]"
+   },
+   {
+    "id": "ADT_A09.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "condition": "If there is a source in MSH-4, or known based on the configuration.",
+    "target": "Provenance[1]",
+    "segmentMap": "MSH[Provenance-Source]",
+    "references": "Provenance[1].target.reference=Bundle.id; Provenance[1].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A09.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Provenance[2]",
+    "segmentMap": "MSH[Provenance-Transformation]",
+    "references": "Provenance[2].target.reference=Bundle.id"
+   },
+   {
+    "id": "ADT_A09.ARV",
+    "syntax": "[{ ARV }]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A09.SFT",
+    "syntax": "[{ SFT }]",
+    "name": "Software Segment",
+    "condition": "If the software does represent not the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"derivation\""
+   },
+   {
+    "id": "ADT_A09.SFT",
+    "syntax": "[{ SFT }]",
+    "name": "Software Segment",
+    "condition": "If the software represents the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"source\""
+   },
+   {
+    "id": "ADT_A09.UAC",
+    "syntax": "[ UAC ]",
+    "name": "User Authentication Credential",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A09.EVN",
+    "syntax": "EVN",
+    "name": "Event Type",
+    "target": "Provenance[3]",
+    "segmentMap": "EVN[Provenance]",
+    "references": "Provenance[3].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A09.EVN",
+    "syntax": "EVN",
+    "name": "Event Type",
+    "condition": "IF EVN-5 NOT VALUED AND (MSH-22 IS VALUED OR MSH-4 IS VALUED)",
+    "target": "Provenance[3]",
+    "segmentMap": "MSH[Provenance-Operator]",
+    "references": "Provenance[3].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A09.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Patient[1]",
+    "segmentMap": "PID[Patient]"
+   },
+   {
+    "id": "ADT_A09.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Account",
+    "segmentMap": "PID[Account]",
+    "references": "Account.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A09.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "condition": "IF PID-33 AND PID-34 VALUED",
+    "target": "Provenance[4]",
+    "segmentMap": "PID[Provenance-Patient]",
+    "references": "Provenance[4].target.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A09.PD1",
+    "syntax": "[ PD1 ]",
+    "name": "Additional Demographics",
+    "target": "Patient[1]",
+    "segmentMap": "PD1[Patient]"
+   },
+   {
+    "id": "ADT_A01.PD1",
+    "syntax": "[ PD1 ]",
+    "name": "Additional Demographics",
+    "condition": "IF PD1-7 VALUED",
+    "target": "Observation[1]",
+    "segmentMap": "PD1[Observation-LivingWill]",
+    "references": "Observation[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A09.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Encounter[1]",
+    "segmentMap": "PV1[Encounter]",
+    "references": "Encounter[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A09.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-43 VALUED",
+    "target": "Basic",
+    "segmentMap": "PV1[Basic-EncounterHistory]",
+    "references": "Basic.extension-EncounterHistory.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A09.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Patient[1]",
+    "segmentMap": "PV1[Patient]"
+   },
+   {
+    "id": "ADT_A09.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-20 VALUE",
+    "target": "Coverage[1]",
+    "segmentMap": "PV1[Coverage]",
+    "references": "Coverage.beneficiary.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A09.PV2",
+    "syntax": "[ PV2 ]",
+    "name": "Patient Visit - Additional Info.",
+    "target": "Encounter[1]",
+    "segmentMap": "PV2[Encounter]"
+   },
+   {
+    "id": "ADT_A09.DB1",
+    "syntax": "[{ DB1 }]",
+    "name": "Disability Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A09.OBSERVATION",
+    "syntax": "[{",
+    "name": "--- OBSERVATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A09.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count LESS THAN OR EQUALS 1 OR OBX-2 IS \"NA\"",
+    "target": "Observation[2]",
+    "segmentMap": "OBX[Observation]",
+    "references": "Observation[2].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A09.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count GREATER THAN 1 AND OBX-2 IS NOT \"NA\"",
+    "target": "Observation[2]",
+    "segmentMap": "OBX[Observation-Component]",
+    "references": "Observation[2].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A09.OBSERVATION.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A09.OBSERVATION",
+    "syntax": "}]",
+    "name": "--- OBSERVATION end",
+    "target": null,
+    "segmentMap": null
+   }
+  ]
+ },
+ "ADT_A11": {
+  "name": "ADT_A11",
+  "file": "mappings/messages/HL7 Message - FHIR R4_ ADT_A11 - Sheet1.csv",
+  "rows": [
+   {
+    "id": "ADT_A11.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Bundle",
+    "segmentMap": "MSH[Bundle]"
+   },
+   {
+    "id": "ADT_A11.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "MessageHeader[1]",
+    "segmentMap": "MSH[MessageHeader]"
+   },
+   {
+    "id": "ADT_A11.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "condition": "If there is a source in MSH-4, or known based on the configuration.",
+    "target": "Provenance[1]",
+    "segmentMap": "MSH[Provenance-Source]",
+    "references": "Provenance[1].target.reference=Bundle.id; Provenance[1].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A11.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Provenance[2]",
+    "segmentMap": "MSH[Provenance-Transformation]",
+    "references": "Provenance[2].target.reference=Bundle.id"
+   },
+   {
+    "id": "ADT_A11.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Encounter[1]",
+    "segmentMap": "MSH[Encounter]",
+    "references": "Encounter[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A01.ARV",
+    "syntax": "[{ ARV }]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A11.SFT",
+    "syntax": "[{ SFT }]",
+    "name": "Software Segment",
+    "condition": "If the software does represent not the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"derivation\""
+   },
+   {
+    "id": "ADT_A11.SFT",
+    "syntax": "[{ SFT }]",
+    "name": "Software Segment",
+    "condition": "If the software represents the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"source\""
+   },
+   {
+    "id": "ADT_A11.UAC",
+    "syntax": "[ UAC ]",
+    "name": "User Authentication Credential",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A11.EVN",
+    "syntax": "EVN",
+    "name": "Event Type",
+    "target": "Provenance[3]",
+    "segmentMap": "EVN[Provenance]",
+    "references": "Provenance[3].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A11.EVN",
+    "syntax": "EVN",
+    "name": "Event Type",
+    "condition": "IF EVN-5 NOT VALUED AND (MSH-22 IS VALUED OR MSH-4 IS VALUED)",
+    "target": "Provenance[3]",
+    "segmentMap": "MSH[Provenance-Operator]",
+    "references": "Provenance[3].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A11.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Patient[1]",
+    "segmentMap": "PID[Patient]"
+   },
+   {
+    "id": "ADT_A11.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Account",
+    "segmentMap": "PID[Account]",
+    "references": "Account.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A11.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "condition": "IF PID-33 AND PID-34 VALUED",
+    "target": "Provenance[4]",
+    "segmentMap": "PID[Provenance-Patient]",
+    "references": "Provenance.target.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A11.PD1",
+    "syntax": "[ PD1 ]",
+    "name": "Additional Demographics",
+    "target": "Patient[1]",
+    "segmentMap": "PD1[Patient]"
+   },
+   {
+    "id": "ADT_A01.PD1",
+    "syntax": "[ PD1 ]",
+    "name": "Additional Demographics",
+    "condition": "IF PD1-7 VALUED",
+    "target": "Observation[1]",
+    "segmentMap": "PD1[Observation-LivingWill]",
+    "references": "Observation[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A11.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Encounter[1]",
+    "segmentMap": "PV1[Encounter]",
+    "references": "Encounter[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A11.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-43 VALUED",
+    "target": "Basic",
+    "segmentMap": "PV1[Basic-EncounterHistory]",
+    "references": "Basic.extension-EncounterHistory.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A11.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Patient[1]",
+    "segmentMap": "PV1[Patient]"
+   },
+   {
+    "id": "ADT_A11.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-20 VALUE",
+    "target": "Coverage[1]",
+    "segmentMap": "PV1[Coverage]",
+    "references": "Coverage.beneficiary.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A11.PV2",
+    "syntax": "[ PV2 ]",
+    "name": "Patient Visit - Additional Info.",
+    "target": "Encounter[1]",
+    "segmentMap": "PV2[Encounter]",
+    "references": "Encounter[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A11.DB1",
+    "syntax": "[{ DB1 }]",
+    "name": "Disability Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A11.OBSERVATION",
+    "syntax": "[{",
+    "name": "--- OBSERVATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A11.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count LESS THAN OR EQUALS 1 OR OBX-2 IS \"NA\"",
+    "target": "Observation[3]",
+    "segmentMap": "OBX[Observation]",
+    "references": "Observation[3].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A11.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count GREATER THAN 1 AND OBX-2 IS NOT \"NA\"",
+    "target": "Observation[3]",
+    "segmentMap": "OBX[Observation-Component]",
+    "references": "Observation[3].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "/ADT_A11.OBSERVATION",
+    "syntax": "}]",
+    "name": "--- OBSERVATION end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A11.DG1",
+    "syntax": "[{ DG1 }]",
+    "name": "Diagnosis Information",
+    "condition": "If in context of the patient",
+    "target": "Condition[1]",
+    "segmentMap": "DG1[Condition]",
+    "references": "Condition[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A11.DG1",
+    "syntax": "[{ DG1 }]",
+    "name": "Diagnosis Information",
+    "condition": "If in context of an encounter",
+    "target": "Encounter[1]",
+    "segmentMap": "DG1[Encounter]",
+    "references": "Encounter[1].diagnosis.reference=Condition[1].id"
+   },
+   {
+    "id": "ADT_A11.DG1",
+    "syntax": "[{ DG1 }]",
+    "name": "Diagnosis Information",
+    "condition": "If in context of a episode of care",
+    "target": "EpisodeOfCare[1]",
+    "segmentMap": "DG1[EpisodeOfCare]",
+    "references": "EpisodeOfCare.patient.reference=Patient[1].id; EpisodeOfCare.diagnosis.reference=Condition[1].id"
+   }
+  ]
+ },
+ "ADT_A17": {
+  "name": "ADT_A17",
+  "file": "mappings/messages/HL7 Message - FHIR R4_ ADT_A17 - Sheet1.csv",
+  "rows": [
+   {
+    "id": "ADT_A17.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Bundle",
+    "segmentMap": "MSH[Bundle]"
+   },
+   {
+    "id": "ADT_A17.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "MessageHeader[1]",
+    "segmentMap": "MSH[MessageHeader]"
+   },
+   {
+    "id": "ADT_A17.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "condition": "If there is a source in MSH-4, or known based on the configuration.",
+    "target": "Provenance[1]",
+    "segmentMap": "MSH[Provenance-Source]",
+    "references": "Provenance[1].target.reference=Bundle.id; Provenance[1].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A17.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Provenance[2]",
+    "segmentMap": "MSH[Provenance-Transformation]",
+    "references": "Provenance[2].target.reference=Bundle.id"
+   },
+   {
+    "id": "ADT_A17.ARV",
+    "syntax": "[{ ARV }]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A17.SFT",
+    "syntax": "[{ SFT }]",
+    "name": "Software Segment",
+    "condition": "If the software does represent not the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"derivation\""
+   },
+   {
+    "id": "ADT_A17.SFT",
+    "syntax": "[{ SFT }]",
+    "name": "Software Segment",
+    "condition": "If the software represents the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"source\""
+   },
+   {
+    "id": "ADT_A17.UAC",
+    "syntax": "[ UAC ]",
+    "name": "User Authentication Credential",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A17.EVN",
+    "syntax": "EVN",
+    "name": "Event Type",
+    "target": "Provenance[3]",
+    "segmentMap": "EVN[Provenance]",
+    "references": "Provenance[3].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A17.EVN",
+    "syntax": "EVN",
+    "name": "Event Type",
+    "condition": "IF EVN-5 NOT VALUED AND (MSH-22 IS VALUED OR MSH-4 IS VALUED)",
+    "target": "Provenance[3]",
+    "segmentMap": "MSH[Provenance-Operator]",
+    "references": "Provenance[3].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ADT_A17.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Patient[1]",
+    "segmentMap": "PID[Patient]"
+   },
+   {
+    "id": "ADT_A17.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Account[1]",
+    "segmentMap": "PID[Account]",
+    "references": "Account[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A17.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "condition": "IF PID-33 AND PID-34 VALUED",
+    "target": "Provenance[4]",
+    "segmentMap": "PID[Provenance-Patient]",
+    "references": "Provenance[4].target.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A17.PD1",
+    "syntax": "[ PD1 ]",
+    "name": "Additional Demographics",
+    "target": "Patient[1]",
+    "segmentMap": "PD1[Patient]"
+   },
+   {
+    "id": "ADT_A01.PD1",
+    "syntax": "[ PD1 ]",
+    "name": "Additional Demographics",
+    "condition": "IF PD1-7 VALUED",
+    "target": "Observation[3]",
+    "segmentMap": "PD1[Observation-LivingWill]",
+    "references": "Observation[3].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A17.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Encounter[1]",
+    "segmentMap": "PV1[Encounter]",
+    "references": "Encounter[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A17.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Patient[1]",
+    "segmentMap": "PV1[Patient]"
+   },
+   {
+    "id": "ADT_A17.PV2",
+    "syntax": "[ PV2 ]",
+    "name": "Patient Visit - Additional Info.",
+    "target": "Encounter[1]",
+    "segmentMap": "PV2[Encounter]"
+   },
+   {
+    "id": "ADT_A17.DB1",
+    "syntax": "[{ DB1 }]",
+    "name": "Disability Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A17.OBSERVATION",
+    "syntax": "[{",
+    "name": "--- OBSERVATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A17.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count LESS THAN OR EQUALS 1 OR OBX-2 IS \"NA\"",
+    "target": "Observation[1]",
+    "segmentMap": "OBX[Observation]",
+    "references": "Observation[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A17.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count GREATER THAN 1 AND OBX-2 IS NOT \"NA\"",
+    "target": "Observation[1]",
+    "segmentMap": "OBX[Observation-Component]",
+    "references": "Observation[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A17.OBSERVATION.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A17.OBSERVATION",
+    "syntax": "}]",
+    "name": "--- OBSERVATION end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A17.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Patient[2]",
+    "segmentMap": "PID[Patient]"
+   },
+   {
+    "id": "ADT_A17.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Account[2]",
+    "segmentMap": "PID[Account]",
+    "references": "Account[2].subject.reference=Patient[2].id"
+   },
+   {
+    "id": "ADT_A17.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "condition": "IF PID-33 AND PID-34 VALUED",
+    "target": "Provenance[5]",
+    "segmentMap": "PID[Provenance-Patient]",
+    "references": "Provenance[5].target.reference=Patient[2].id"
+   },
+   {
+    "id": "ADT_A17.PD1",
+    "syntax": "[ PD1 ]",
+    "name": "Additional Demographics",
+    "target": "Patient[2]",
+    "segmentMap": "PD1[Patient]"
+   },
+   {
+    "id": "ADT_A17.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Encounter[2]",
+    "segmentMap": "PV1[Encounter]",
+    "references": "Encounter[2].subject.reference=Patient[2].id"
+   },
+   {
+    "id": "ADT_A17.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-43 VALUED",
+    "target": "Basic",
+    "segmentMap": "PV1[Basic-EncounterHistory]",
+    "references": "Basic.extension-EncounterHistory.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A17.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Patient[1]",
+    "segmentMap": "PV1[Patient]"
+   },
+   {
+    "id": "ADT_A17.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-20 VALUE",
+    "target": "Coverage[1]",
+    "segmentMap": "PV1[Coverage]",
+    "references": "Coverage.beneficiary.reference=Patient[1].id"
+   },
+   {
+    "id": "ADT_A17.PV2",
+    "syntax": "[ PV2 ]",
+    "name": "Patient Visit - Additional Info.",
+    "target": "Encounter[2]",
+    "segmentMap": "PV2[Encounter]"
+   },
+   {
+    "id": "ADT_A17.DB1",
+    "syntax": "[{ DB1 }]",
+    "name": "Disability Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A17.OBSERVATION",
+    "syntax": "[{",
+    "name": "--- OBSERVATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ADT_A17.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count LESS THAN OR EQUALS 1 OR OBX-2 IS \"NA\"",
+    "target": "Observation[2]",
+    "segmentMap": "OBX[Observation]",
+    "references": "Observation[2].subject.reference=Patient[2].id"
+   },
+   {
+    "id": "ADT_A17.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count GREATER THAN 1 AND OBX-2 IS NOT \"NA\"",
+    "target": "Observation[2]",
+    "segmentMap": "OBX[Observation-Component]",
+    "references": "Observation[2].subject.reference=Patient[2].id"
+   },
+   {
+    "id": "ADT_A17.OBSERVATION.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ADT_A17.OBSERVATION",
+    "syntax": "}]",
+    "name": "--- OBSERVATION end",
+    "target": null,
+    "segmentMap": null
+   }
+  ]
+ },
+ "MDM_T02": {
+  "name": "MDM_T02",
+  "file": "mappings/messages/HL7 Message - FHIR R4_ MDM_T02 - Sheet1.csv",
+  "rows": [
+   {
+    "id": "MDM_T02.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Bundle",
+    "segmentMap": "MSH[Bundle]"
+   },
+   {
+    "id": "MDM_T02.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "MessageHeader[1]",
+    "segmentMap": "MSH[MessageHeader]"
+   },
+   {
+    "id": "MDM_T02.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Provenance[1]",
+    "segmentMap": "MSH[Provenance-Source]",
+    "references": "Provenance[1].target.reference=Bundle.id; Provenance[1].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "MDM_T02.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Provenance[2]",
+    "segmentMap": "MSH[Provenance-Transformation]",
+    "references": "Provenance[2].target.reference=Bundle.id"
+   },
+   {
+    "id": "MDM_T02.SFT",
+    "syntax": "[{SFT}]",
+    "name": "Software Segment",
+    "condition": "If the software does not represent the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"derivation\""
+   },
+   {
+    "id": "MDM_T02.SFT",
+    "syntax": "[{SFT}]",
+    "name": "Software Segment",
+    "condition": "If the software represents the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"source\""
+   },
+   {
+    "id": "MDM_T02.UAC",
+    "syntax": "[ UAC ]",
+    "name": "User Authentication Credential",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "MDM_T02.EVN",
+    "syntax": "EVN",
+    "name": "Event Type",
+    "target": "Provenance[3]",
+    "segmentMap": "EVN[Provenance]",
+    "references": "Provenance[3].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "MDM_T02.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Patient[1]",
+    "segmentMap": "PID[Patient]"
+   },
+   {
+    "id": "MDM_T02.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Provenance[4]",
+    "segmentMap": "PID[Provenance-Patient]",
+    "references": "Provenance.target.reference=Patient[1].id"
+   },
+   {
+    "id": "MDM_T02.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Encounter[1]",
+    "segmentMap": "PV1[Encounter]",
+    "references": "Encounter.subject=Patient[PID]"
+   },
+   {
+    "id": "MDM_T02.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-43 VALUED",
+    "target": "Basic",
+    "segmentMap": "PV1[Basic-EncounterHistory]",
+    "references": "Basic.extension-EncounterHistory.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "MDM_T02.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Patient[1]",
+    "segmentMap": "PV1[Patient]"
+   },
+   {
+    "id": "MDM_T02.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-20 VALUE",
+    "target": "Coverage[1]",
+    "segmentMap": "PV1[Coverage]",
+    "references": "Coverage.beneficiary.reference=Patient[1].id"
+   },
+   {
+    "id": "MDM_T02.COMMON_ORDER",
+    "syntax": "[{",
+    "name": "--- COMMON_ORDER begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "MDM_T02.COMMON_ORDER.ORC",
+    "syntax": "ORC",
+    "name": "Common order segment",
+    "target": "ServiceRequest[1]",
+    "segmentMap": "ORC[ServiceRequest]",
+    "references": "ServiceRequest.subject=Patient[PID]"
+   },
+   {
+    "id": "MDM_T02.COMMON_ORDER.ORC",
+    "syntax": "ORC",
+    "name": "Common order segment",
+    "target": "Provenance[3]",
+    "segmentMap": "ORC[Provenance]",
+    "references": "Provenance.target=ServiceRequest[ORC]"
+   },
+   {
+    "id": "MDM_T02.COMMON_ORDER.TIMING",
+    "syntax": "[{",
+    "name": "--- TIMING begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "MDM_T02.COMMON_ORDER.TIMING.TQ1",
+    "syntax": "TQ1",
+    "name": "Timing/Quantity",
+    "target": "ServiceRequest[1]",
+    "segmentMap": "TQ1[ServiceRequest]"
+   },
+   {
+    "id": "MDM_T02.COMMON_ORDER.TIMING.TQ2",
+    "syntax": "[{TQ2}]",
+    "name": "Timing/Quantity Order Sequence",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/MDM_T02.COMMON_ORDER.TIMING",
+    "syntax": "}]",
+    "name": "--- TIMING end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "MDM_T02.COMMON_ORDER.OBR",
+    "syntax": "OBR",
+    "name": "Observation request segment",
+    "target": "ServiceRequest[1]",
+    "segmentMap": "OBR[ServiceRequest]"
+   },
+   {
+    "id": "MDM_T02.COMMON_ORDER.NTE",
+    "syntax": "[{ NTE }]",
+    "name": "Notes and comments about the observation (OBR)",
+    "target": "ServiceRequest[1]",
+    "segmentMap": "NTE[ServiceRequest]"
+   },
+   {
+    "id": "/MDM_T02.COMMON_ORDER",
+    "syntax": "}]",
+    "name": "--- COMMON_ORDER end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "MDM_T02.TXA",
+    "syntax": "TXA",
+    "name": "Document Notification",
+    "target": "DocumentReference[1]",
+    "segmentMap": "TXA[DocumentReference]",
+    "references": "DocumentReference[1].context.related.reference=ServiceRequest[1].id"
+   },
+   {
+    "id": "MDM_T02.TXA",
+    "syntax": "TXA",
+    "name": "Document Notification",
+    "condition": "IF TXA-8 IS VALUED",
+    "target": "Provenance",
+    "segmentMap": "TXA[Provenance]",
+    "references": "Provenance[1].target=DocumentReference[1].id"
+   },
+   {
+    "id": "MDM_T02.CON",
+    "syntax": "[{CON}]",
+    "name": "Consent Segment",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "MDM_T02.OBSERVATION",
+    "syntax": "{",
+    "name": "--- OBSERVATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "MDM_T02.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result (one or more required)",
+    "target": "DocumentReference[1]",
+    "segmentMap": "OBX[DocumentReference]",
+    "references": "DocumentReference[1].context.related.reference=ServiceRequest[1].id"
+   },
+   {
+    "id": "MDM_T02.OBSERVATION.NTE",
+    "syntax": "[{ NTE }]",
+    "name": "Notes and comments about the observation (OBX)",
+    "target": "DocumentReference[1]",
+    "segmentMap": "NTE[DocumentReference]",
+    "references": "DocumentReference[1].context.related.reference=ServiceRequest[1].id"
+   },
+   {
+    "id": "/MDM_T02.OBSERVATION",
+    "syntax": "}",
+    "name": "--- OBSERVATION end",
+    "target": null,
+    "segmentMap": null
+   }
+  ]
+ },
+ "OML_O21": {
+  "name": "OML_O21",
+  "file": "mappings/messages/HL7 Message - FHIR R4_ OML_O21 - Sheet1.csv",
+  "rows": [
+   {
+    "id": "OML_O21.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Bundle",
+    "segmentMap": "MSH[Bundle]"
+   },
+   {
+    "id": "OML_O21.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "MessageHeader[1]",
+    "segmentMap": "MSH[MessageHeader]"
+   },
+   {
+    "id": "OML_O21.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "condition": "If there is a source in MSH-4, or known based on the configuration.",
+    "target": "Provenance[1]",
+    "segmentMap": "MSH[Provenance-Source]",
+    "references": "Provenance[1].target.reference=Bundle.id; Provenance[1].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "OML_O21.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Provenance[2]",
+    "segmentMap": "MSH[Provenance-Transformation]",
+    "references": "Provenance[2].target.reference=Bundle.id"
+   },
+   {
+    "id": "OML_O21.SFT",
+    "syntax": "[{SFT}]",
+    "name": "Software",
+    "condition": "If the software does not represent the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"derivation\""
+   },
+   {
+    "id": "OML_O21.SFT",
+    "syntax": "[{SFT}]",
+    "name": "Software",
+    "condition": "If the software represents the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"source\""
+   },
+   {
+    "id": "OML_O21.UAC",
+    "syntax": "[ UAC ]",
+    "name": "User Authentication Credential",
+    "condition": "ic",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.NTE",
+    "syntax": "[{NTE}]",
+    "name": "Notes and Comments (for Header)",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.PATIENT",
+    "syntax": "[",
+    "name": "--- PATIENT begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.PATIENT.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Patient[1]",
+    "segmentMap": "PID[Patient]"
+   },
+   {
+    "id": "OML_O21.PATIENT.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "condition": "IF PID-33 AND PID-34 VALUED",
+    "target": "Provenance[4]",
+    "segmentMap": "PID[Provenance-Patient]",
+    "references": "Provenance.target.reference=Patient[1].id"
+   },
+   {
+    "id": "OML_O21.PATIENT.PD1",
+    "syntax": "[PD1]",
+    "name": "Additional Demographics",
+    "target": "Patient[1]",
+    "segmentMap": "PD1[Patient]"
+   },
+   {
+    "id": "OML_O21.PATIENT.PD1",
+    "syntax": "[PD1]",
+    "name": "Additional Demographics",
+    "condition": "IF PD1-7 VALUED",
+    "target": "Observation[2]",
+    "segmentMap": "PD1[Observation-LivingWill]",
+    "references": "Observation[2].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "OML_O21.PATIENT.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Patient)",
+    "condition": "IF PRT-4.1 EQUALS \"PP\" AND PRT-4.3 EQUALS \"HL70443\"",
+    "target": "PractitionerRole[1]",
+    "segmentMap": "PRT[PractitionerRole]",
+    "references": "Patient[1].generalPractitioner.reference=PractitionerRole[1].id"
+   },
+   {
+    "id": "OML_O21.PATIENT.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Patient)",
+    "condition": "IF PRT-4.1 NOT EQUALS \"PP\" OR PRT-4.3 NOT EQUALS \"HL70443\"",
+    "target": "RelatedPerson[1]",
+    "segmentMap": "PRT[RelatedPerson]",
+    "references": "RelatedPerson[1].patient.reference=Patient[1].id"
+   },
+   {
+    "id": "OML_O21.PATIENT.NTE",
+    "syntax": "[{NTE}]",
+    "name": "Notes and Comments (for Patient ID)",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.PATIENT.NK1",
+    "syntax": "[{NK1}]",
+    "name": "Next of Kin/Associated Parties",
+    "condition": "The FHIR location will depend on the nature of the data being exchanged and how the systems use next of kin data",
+    "target": "RelatedPerson[2]",
+    "segmentMap": "NK1[RelatedPerson]",
+    "references": "RelatedPerson[2].patient.reference=Patient[1].id"
+   },
+   {
+    "id": "OML_O21.PATIENT.NK1",
+    "syntax": "[{NK1}]",
+    "name": "Next of Kin/Associated Parties",
+    "condition": "The FHIR location will depend on the nature of the data being exchanged and how the systems use next of kin data",
+    "target": "Patient[1]",
+    "segmentMap": "NK1[Patient]"
+   },
+   {
+    "id": "OML_O21.PATIENT.ARV",
+    "syntax": "[{ARV}]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.PATIENT.PATIENT_VISIT",
+    "syntax": "[",
+    "name": "--- PATIENT_VISIT begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.PATIENT.PATIENT_VISIT.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Encounter[1]",
+    "segmentMap": "PV1[Encounter]",
+    "references": "Encounter.subject=Patient[PID]"
+   },
+   {
+    "id": "OML_O21.PATIENT.PATIENT_VISIT.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-43 VALUED",
+    "target": "Basic",
+    "segmentMap": "PV1[Basic-EncounterHistory]",
+    "references": "Basic.extension-EncounterHistory.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "OML_O21.PATIENT.PATIENT_VISIT.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Patient[1]",
+    "segmentMap": "PV1[Patient]"
+   },
+   {
+    "id": "OML_O21.PATIENT.PATIENT_VISIT.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-20 VALUE",
+    "target": "Coverage[1]",
+    "segmentMap": "PV1[Coverage]",
+    "references": "Coverage.beneficiary.reference=Patient[1].id"
+   },
+   {
+    "id": "OML_O21.PATIENT.PATIENT_VISIT.PV2",
+    "syntax": "[ PV2 ]",
+    "name": "Patient Visit- Additional Info",
+    "target": "Encounter[1]",
+    "segmentMap": "PV2[Encounter]"
+   },
+   {
+    "id": "OML_O21.PATIENT.PATIENT_VISIT.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Patient Visit)",
+    "target": "PractitionerRole[2]",
+    "segmentMap": "PRT[PractitionerRole]",
+    "references": "Encounter[1].participant.individual.reference=PractitionerRole[2].id"
+   },
+   {
+    "id": "/OML_O21.PATIENT.PATIENT_VISIT",
+    "syntax": "]",
+    "name": "--- PATIENT_VISIT end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.PATIENT.INSURANCE",
+    "syntax": "[{",
+    "name": "--- INSURANCE begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.PATIENT.INSURANCE.IN1",
+    "syntax": "IN1",
+    "name": "Insurance",
+    "target": "Coverage[1]",
+    "segmentMap": "IN1[Coverage]",
+    "references": "Coverage.subscriber=Patient[PID]"
+   },
+   {
+    "id": "OML_O21.PATIENT.INSURANCE.IN2",
+    "syntax": "[ IN2 ]",
+    "name": "Insurance Additional Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.PATIENT.INSURANCE.IN3",
+    "syntax": "[ IN3 ]",
+    "name": "Insurance Additional Information, Certification",
+    "target": "Coverage[1]",
+    "segmentMap": "IN3[CareTeam]"
+   },
+   {
+    "id": "/OML_O21.PATIENT.INSURANCE",
+    "syntax": "}]",
+    "name": "--- INSURANCE end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.PATIENT.GT1",
+    "syntax": "[ GT1 ]",
+    "name": "Guarantor",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.PATIENT.AL1",
+    "syntax": "[{AL1}]",
+    "name": "Allergy Information",
+    "target": "AllergyIntolerance",
+    "segmentMap": "AL1[AllergyIntolerance]",
+    "references": "AllergyIntolerance.patient=Patient[PID]"
+   },
+   {
+    "id": "/OML_O21.PATIENT",
+    "syntax": "]",
+    "name": "--- PATIENT end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER",
+    "syntax": "{",
+    "name": "--- ORDER begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.ORC",
+    "syntax": "ORC",
+    "name": "Common Order",
+    "target": "ServiceRequest[1]",
+    "segmentMap": "ORC[ServiceRequest]",
+    "references": "ServiceRequest.subject=Patient[PID]"
+   },
+   {
+    "id": "OML_O21.ORDER.ORC",
+    "syntax": "ORC",
+    "name": "Common Order",
+    "target": "Provenance[3]",
+    "segmentMap": "ORC[Provenance]",
+    "references": "Provenance.target=ServiceRequest[ORC]"
+   },
+   {
+    "id": "OML_O21.ORDER.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Common Order)",
+    "condition": "IF PRT-4.1 EQUALS \"OP\" AND PRT-4.3 EQUALS \"HL70443\"",
+    "target": "PractitionerRole[3]",
+    "segmentMap": "PRT[PractitionerRole]",
+    "references": "ServiceRequest[1].requester.reference=PractitionerRole[3].id"
+   },
+   {
+    "id": "OML_O21.ORDER.TIMING",
+    "syntax": "[{",
+    "name": "--- TIMING begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.TIMING.TQ1",
+    "syntax": "TQ1",
+    "name": "Timing/Quantity",
+    "target": "ServiceRequest[1]",
+    "segmentMap": "TQ1[ServiceRequest]"
+   },
+   {
+    "id": "OML_O21.ORDER.TIMING.TQ2",
+    "syntax": "[{TQ2}]",
+    "name": "Timing/Quantity Order Sequence",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/OML_O21.ORDER.TIMING",
+    "syntax": "}]",
+    "name": "--- TIMING end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST",
+    "syntax": "[",
+    "name": "--- OBSERVATION_REQUEST begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.OBR",
+    "syntax": "OBR",
+    "name": "Observation Request",
+    "target": "ServiceRequest[1]",
+    "segmentMap": "OBR[ServiceRequest]"
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.OBR",
+    "syntax": "OBR",
+    "name": "Observation Request",
+    "target": "Specimen[each]",
+    "segmentMap": "OBR[Specimen]"
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.TCD",
+    "syntax": "[ TCD ]",
+    "name": "Test Code Details",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.NTE",
+    "syntax": "[{NTE}]",
+    "name": "Notes and Comments (for Detail)",
+    "target": "ServiceRequest[1]",
+    "segmentMap": "NTE[ServiceRequest]"
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Observation Request)",
+    "condition": "IF PRT-4.1 EQUALS \"SC\" AND PRT-4.3 EQUALS \"HL70443\"",
+    "target": "PractitionerRole[4]",
+    "segmentMap": "PRT[PractitionerRole]",
+    "references": "ServiceRequest[1].specimen[1](Specimen.collection.collector.reference)=PractitionerRole[4].id"
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Observation Request)",
+    "condition": "IF PRT-4.1 EQUALS \"OP\" AND PRT-4.3 EQUALS \"HL70443\"",
+    "target": "PractitionerRole[3]",
+    "segmentMap": "PRT[PractitionerRole]",
+    "references": "ServiceRequest[1].requester.reference=PractitionerRole[3].id"
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.CTD",
+    "syntax": "[ CTD ]",
+    "name": "Contact Data",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.DG1",
+    "syntax": "[{DG1}]",
+    "name": "Diagnosis",
+    "target": "Condition[1]",
+    "segmentMap": "DG1[Condition]",
+    "references": "ServiceRequest[1].reasonReference.reference=Condition[1].id; Condition[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.OBSERVATION",
+    "syntax": "[{",
+    "name": "--- OBSERVATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count LESS THAN OR EQUALS 1 OR OBX-2 IS \"NA\"",
+    "target": "Observation[1]",
+    "segmentMap": "OBX[Observation]",
+    "references": "ServiceRequest[1].supportingInfo.reference=Observation[1].id; Observation[1].subject.id=Patient[1].id"
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count GREATER THAN 1 AND OBX-2 IS NOT \"NA\"",
+    "target": "Observation[1]",
+    "segmentMap": "OBX[Observation-Component]",
+    "references": "ServiceRequest[1].supportingInfo.reference=Observation[1].id; Observation[1].subject.id=Patient[1].id"
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.OBSERVATION.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for OBX)",
+    "condition": "IF PRT-10 VALUED",
+    "target": "Device[1]",
+    "segmentMap": "PRT[Device]",
+    "references": "Observation[1].device.reference=Device.id"
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.OBSERVATION.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for OBX)",
+    "condition": "IF PRT-9 VALUED OR IF PRT-14 VALUED",
+    "target": "Observation[1]",
+    "segmentMap": "PRT[Observation-Location]"
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.OBSERVATION.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for OBX)",
+    "condition": "IF PRT-5 VALUED",
+    "target": "PractitionerRole[7]",
+    "segmentMap": "PRT[PractitionerRole]",
+    "references": "Observation[1].performer.reference=PractitionerRole[7].id"
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.OBSERVATION.TCD",
+    "syntax": "[ TCD ]",
+    "name": "Test Code Detail",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.OBSERVATION.NTE",
+    "syntax": "[{NTE}]",
+    "name": "Notes and Comments (for Results)",
+    "target": "Observation[1]",
+    "segmentMap": "NTE[Observation]"
+   },
+   {
+    "id": "/OML_O21.ORDER.OBSERVATION_REQUEST.OBSERVATION",
+    "syntax": "}]",
+    "name": "--- OBSERVATION end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.SPECIMEN",
+    "syntax": "[{",
+    "name": "--- SPECIMEN begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.SPECIMEN.SPM",
+    "syntax": "SPM",
+    "name": "Specimen",
+    "target": "Specimen",
+    "segmentMap": "SPM[Specimen]",
+    "references": "ServiceRequest[1].specimen.reference=Specimen[SPM].id"
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.SPECIMEN.SPM",
+    "syntax": "SPM",
+    "name": "Specimen",
+    "condition": "IF SPM-21 VALUED",
+    "target": null,
+    "segmentMap": null,
+    "references": "ServiceRequest[1].specimen.#ext-rejectReason#=SPM-21"
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.SPECIMEN.SPECIMEN_OBSERVATION",
+    "syntax": "[{",
+    "name": "--- SPECIMEN_OBSERVATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.SPECIMEN.SPECIMEN_OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result related to specimen",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.SPECIMEN.SPECIMEN_OBSERVATION.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Specimen Observation)",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/OML_O21.ORDER.OBSERVATION_REQUEST.SPECIMEN.SPECIMEN_OBSERVATION",
+    "syntax": "}]",
+    "name": "--- SPECIMEN_OBSERVATION end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.SPECIMEN.CONTAINER",
+    "syntax": "[{",
+    "name": "--- CONTAINER begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.SPECIMEN.CONTAINER.SAC",
+    "syntax": "SAC",
+    "name": "Specimen Container",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.SPECIMEN.CONTAINER.CONTAINER_OBSERVATION",
+    "syntax": "[{",
+    "name": "--- CONTAINER_OBSERVATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.SPECIMEN.CONTAINER.CONTAINER_OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result related to container",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.SPECIMEN.CONTAINER.CONTAINER_OBSERVATION.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Container Observation)",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/OML_O21.ORDER.OBSERVATION_REQUEST.SPECIMEN.CONTAINER.CONTAINER_OBSERVATION",
+    "syntax": "}]",
+    "name": "--- CONTAINER_OBSERVATION end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/OML_O21.ORDER.OBSERVATION_REQUEST.SPECIMEN.CONTAINER",
+    "syntax": "}]",
+    "name": "--- CONTAINER end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/OML_O21.ORDER.OBSERVATION_REQUEST.SPECIMEN",
+    "syntax": "}]",
+    "name": "--- SPECIMEN end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.SGH",
+    "syntax": "[SGH]",
+    "name": "Segment Group Header",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT",
+    "syntax": "[{",
+    "name": "--- PRIOR_RESULT begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.PATIENT_PRIOR",
+    "syntax": "[",
+    "name": "--- PATIENT_PRIOR begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.PATIENT_PRIOR.PID",
+    "syntax": "PID",
+    "name": "Patient Identification– previous result",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.PATIENT_PRIOR.PD1",
+    "syntax": "[PD1]",
+    "name": "Additional Demographics – previous result",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.PATIENT_PRIOR.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Patient Prior)",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.PATIENT_PRIOR.ARV",
+    "syntax": "[{ARV}]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.PATIENT_PRIOR",
+    "syntax": "]",
+    "name": "--- PATIENT_PRIOR end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.RESULT_VISIT_PRIOR",
+    "syntax": "[",
+    "name": "--- PATIENT_VISIT_PRIOR begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.RESULT_VISIT_PRIOR.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit– previous result",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.RESULT_VISIT_PRIOR.PV2",
+    "syntax": "[ PV2 ]",
+    "name": "Patient Visit Add. Info – previous result",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.RESULT_VISIT_PRIOR.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Patient Visit Prior)",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.RESULT_VISIT_PRIOR",
+    "syntax": "]",
+    "name": "--- PATIENT_VISIT_PRIOR end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.AL1",
+    "syntax": "[{AL1}]",
+    "name": "Allergy Information- previous result",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.ORDER_PRIOR",
+    "syntax": "{",
+    "name": "--- ORDER_PRIOR begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.ORDER_PRIOR.ORC",
+    "syntax": "ORC",
+    "name": "Common Order- previous result",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.ORDER_PRIOR.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.ORDER_PRIOR.OBR",
+    "syntax": "OBR",
+    "name": "Order Detail- previous result",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.ORDER_PRIOR.NTE",
+    "syntax": "[{NTE}]",
+    "name": "Notes and Comments- previous result",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.ORDER_PRIOR.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Order Prior)",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.ORDER_PRIOR.TIMING_PRIOR",
+    "syntax": "[{",
+    "name": "--- TIMING_PRIOR begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.ORDER_PRIOR.TIMING_PRIOR.TQ1",
+    "syntax": "TQ1",
+    "name": "Timing/Quantity",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.ORDER_PRIOR.TIMING_PRIOR.TQ2",
+    "syntax": "[{TQ2}]",
+    "name": "Timing/Quantity Order Sequence",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.ORDER_PRIOR.TIMING_PRIOR",
+    "syntax": "}]",
+    "name": "--- TIMING_PRIOR end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.ORDER_PRIOR.OBSERVATION_PRIOR",
+    "syntax": "{",
+    "name": "--- OBSERVATION_PRIOR begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.ORDER_PRIOR.OBSERVATION_PRIOR.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result- previous result",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.ORDER_PRIOR.OBSERVATION_PRIOR.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Observation Prior)",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.ORDER_PRIOR.OBSERVATION_PRIOR.NTE",
+    "syntax": "[{NTE}]",
+    "name": "Notes and Comments- previous result",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.ORDER_PRIOR.OBSERVATION_PRIOR",
+    "syntax": "}",
+    "name": "--- OBSERVATION_PRIOR end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT.ORDER_PRIOR",
+    "syntax": "}",
+    "name": "--- ORDER_PRIOR end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/OML_O21.ORDER.OBSERVATION_REQUEST.PRIOR_RESULT",
+    "syntax": "}]",
+    "name": "--- PRIOR_RESULT end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.OBSERVATION_REQUEST.SGT",
+    "syntax": "[SGT]",
+    "name": "Segment Group Trailer",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/OML_O21.ORDER.OBSERVATION_REQUEST",
+    "syntax": "]",
+    "name": "--- OBSERVATION_REQUEST end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.FT1",
+    "syntax": "[{FT1}]",
+    "name": "Financial Transaction",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.CTI",
+    "syntax": "[{CTI}]",
+    "name": "Clinical Trial Identification",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "OML_O21.ORDER.BLG",
+    "syntax": "[ BLG ]",
+    "name": "Billing Segment",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/OML_O21.ORDER",
+    "syntax": "}",
+    "name": "--- ORDER end",
+    "target": null,
+    "segmentMap": null
+   }
+  ]
+ },
+ "ORM_O01": {
+  "name": "ORM_O01",
+  "file": "mappings/messages/HL7 Message - FHIR R4_ ORM_O01 - Sheet1.csv",
+  "rows": [
+   {
+    "id": "ORM_O01.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Bundle",
+    "segmentMap": "MSH[Bundle]"
+   },
+   {
+    "id": "ORM_O01.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "MessageHeader[1]",
+    "segmentMap": "MSH[MessageHeader]"
+   },
+   {
+    "id": "ORM_O01.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "condition": "If there is a source in MSH-4, or known based on the configuration.",
+    "target": "Provenance[1]",
+    "segmentMap": "MSH[Provenance-Source]",
+    "references": "Provenance[1].target.reference=Bundle.id; Provenance[1].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ORM_O01.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Provenance[2]",
+    "segmentMap": "MSH[Provenance-Transformation]",
+    "references": "Provenance[2].target.reference=Bundle.id"
+   },
+   {
+    "id": "ORM_O01.NTE",
+    "syntax": "[{ NTE }]",
+    "name": "Notes and Comments (for Header)",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.PATIENT",
+    "syntax": "[",
+    "name": "PATIENT begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.PATIENT.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Patient[1]",
+    "segmentMap": "PID[Patient]"
+   },
+   {
+    "id": "ORM_O01.PATIENT.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "condition": "IF PID-33 AND PID-34 VALUED",
+    "target": "Provenance[4]",
+    "segmentMap": "PID[Provenance-Patient]",
+    "references": "Provenance.target.reference=Patient[1].id"
+   },
+   {
+    "id": "ORM_O01.PATIENT.PD1",
+    "syntax": "[ PD1 ]",
+    "name": "Additional Demographics",
+    "target": "Patient[1]",
+    "segmentMap": "PD1[Patient]"
+   },
+   {
+    "id": "ORM_O01.PATIENT.PD1",
+    "syntax": "[ PD1 ]",
+    "name": "Additional Demographics",
+    "condition": "IF PD1-7 VALUED",
+    "target": "Observation[2]",
+    "segmentMap": "PD1[Observation-LivingWill]",
+    "references": "Observation[2].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ORM_O01.PATIENT.NTE",
+    "syntax": "[{ NTE }]",
+    "name": "Notes and Comments (for Patient ID)",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.PATIENT.VISIT",
+    "syntax": "[",
+    "name": "PATIENT_VISIT begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.PATIENT.VISIT.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Encounter[1]",
+    "segmentMap": "PV1[Encounter]",
+    "references": "Encounter.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ORM_O01.PATIENT.VISIT.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-43 VALUED",
+    "target": "Basic",
+    "segmentMap": "PV1[Basic-EncounterHistory]",
+    "references": "Basic.extension-EncounterHistory.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ORM_O01.PATIENT.VISIT.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Patient[1]",
+    "segmentMap": "PV1[Patient]"
+   },
+   {
+    "id": "ORM_O01.PATIENT.VISIT.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-20 VALUE",
+    "target": "Coverage[1]",
+    "segmentMap": "PV1[Coverage]",
+    "references": "Coverage.beneficiary.reference=Patient[1].id"
+   },
+   {
+    "id": "ORM_O01.PATIENT.VISIT.PV2",
+    "syntax": "[ PV2 ]",
+    "name": "Patient Visit- Additional Info",
+    "target": "Encounter[1]",
+    "segmentMap": "PV2[Encounter]"
+   },
+   {
+    "id": "/ORM_O01.PATIENT.VISIT",
+    "syntax": "]",
+    "name": "PATIENT_VISIT end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.PATIENT.INSURANCE",
+    "syntax": "[{",
+    "name": "INSURANCE begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.PATIENT.INSURANCE.IN1",
+    "syntax": "IN1",
+    "name": "Insurance",
+    "target": "Coverage[1]",
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.PATIENT.INSURANCE.IN2",
+    "syntax": "[ IN2 ]",
+    "name": "Insurance Additional Info",
+    "target": "Coverage[1]",
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.PATIENT.INSURANCE.IN3",
+    "syntax": "[ IN3 ]",
+    "name": "Insurance Add'l Info – Cert.",
+    "target": "Coverage[1]",
+    "segmentMap": null
+   },
+   {
+    "id": "/ORM_O01.PATIENT.INSURANCE",
+    "syntax": "}]",
+    "name": "INSURANCE end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.PATIENT.GT1",
+    "syntax": "[ GT1 ]",
+    "name": "Guarantor",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.PATIENT.AL1",
+    "syntax": "[{ AL1 }]",
+    "name": "Allergy Information",
+    "target": "AllergyIntolerance",
+    "segmentMap": "AL1[AllergyIntolerance]",
+    "references": "AllergyIntolerance.patient.reference=Patient[1].id"
+   },
+   {
+    "id": "/ORM_O01.PATIENT",
+    "syntax": "]",
+    "name": "PATIENT end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.ORDER",
+    "syntax": "{",
+    "name": "ORDER begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.ORDER.ORC",
+    "syntax": "ORC",
+    "name": "Common Order",
+    "target": "ServiceRequest[1]",
+    "segmentMap": "ORC[ServiceRequest]",
+    "references": "ServiceRequest[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ORM_O01.ORDER.ORC",
+    "syntax": "ORC",
+    "name": "Common Order",
+    "condition": "h",
+    "target": "Task[1]",
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.ORDER.ORC",
+    "syntax": "ORC",
+    "name": "Common Order",
+    "target": "Provenance[2]",
+    "segmentMap": "ORC[Provenance]",
+    "references": "Provenance[2].target=ServiceRequest[1]"
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL",
+    "syntax": "[",
+    "name": "ORDER_DETAIL begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.CHOICE",
+    "syntax": "<",
+    "name": null,
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.CHOICE.OBR",
+    "syntax": "OBR",
+    "name": "Order Detail Segment OBR, etc.",
+    "condition": "IF PID VALUED",
+    "target": "ServiceRequest[1]",
+    "segmentMap": "OBR[ServiceRequest]"
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.CHOICE.OBR",
+    "syntax": "OBR",
+    "name": "Order Detail Segment OBR, etc.",
+    "condition": "IF PID NOT VALUED",
+    "target": "SupplyRequest[1]",
+    "segmentMap": "OBR[ServiceRequest]"
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.CHOICE",
+    "syntax": "|",
+    "name": null,
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.CHOICE.RQD",
+    "syntax": "RQD",
+    "name": "Requisition Detail",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.CHOICE",
+    "syntax": "|",
+    "name": null,
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.CHOICE.RQ1",
+    "syntax": "RQ1",
+    "name": "Requisition Detail-1",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.CHOICE",
+    "syntax": "|",
+    "name": null,
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.CHOICE.RXO",
+    "syntax": "RXO",
+    "name": "Pharmacy/Treatment Order",
+    "target": "MedicationRequest",
+    "segmentMap": "RXO[MedicationRequest]"
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.CHOICE",
+    "syntax": "|",
+    "name": null,
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.CHOICE.ODS",
+    "syntax": "ODS",
+    "name": "Dietary Orders, Supplements, and Preferences",
+    "condition": "IF PID NOT VALUED",
+    "target": "SupplyRequest[2]",
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.CHOICE",
+    "syntax": "|",
+    "name": null,
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.CHOICE.ODT",
+    "syntax": "ODT",
+    "name": "Diet Tray Instructions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ORM_O01.ORDER_DETAIL.CHOICE",
+    "syntax": ">",
+    "name": null,
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.NTE",
+    "syntax": "[{ NTE }]",
+    "name": "Notes and Comments (for Detail)",
+    "target": "ServiceRequest[1].note",
+    "segmentMap": "NTE[ServiceRequest]"
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.CTD",
+    "syntax": "[ CTD ]",
+    "name": "Contact Data 1",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.DG1",
+    "syntax": "[{ DG1 }]",
+    "name": "Diagnosis",
+    "target": "ServiceRequest[1].reasonReference(Condition)",
+    "segmentMap": "DG1[Condition]",
+    "references": "Condition.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.OBSERVATION",
+    "syntax": "[{",
+    "name": "OBSERVATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count LESS THAN OR EQUALS 1 OR OBX-2 IS \"NA\"",
+    "target": "Observation[1]",
+    "segmentMap": "OBX[Observation]",
+    "references": "ServiceRequest[1].supportingInfo.reference=Observation[1].id; Observation[1].subject.id=Patient[1].id"
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count GREATER THAN 1 AND OBX-2 IS NOT \"NA\"",
+    "target": "Observation[1]",
+    "segmentMap": "OBX[Observation-Component]",
+    "references": "ServiceRequest[1].supportingInfo.reference=Observation[1].id; Observation[1].subject.id=Patient[1].id"
+   },
+   {
+    "id": "ORM_O01.ORDER_DETAIL.OBSERVATION.NTE",
+    "syntax": "[{ NTE }]",
+    "name": "Notes and Comments (for Results)",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ORM_O01.ORDER_DETAIL.OBSERVATION",
+    "syntax": "}]",
+    "name": "OBSERVATION end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ORM_O01.ORDER_DETAIL",
+    "syntax": "]",
+    "name": "ORDER_DETAIL end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.ORDER.FT1",
+    "syntax": "[{ FT1 }]",
+    "name": "Financial Transaction",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.ORDER.CTI",
+    "syntax": "[{ CTI }]",
+    "name": "Clinical Trial Identification",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORM_O01.ORDER.BLG",
+    "syntax": "[ BLG ]",
+    "name": "Billing Segment",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ORM_O01.ORDER",
+    "syntax": "}",
+    "name": "ORDER end",
+    "target": null,
+    "segmentMap": null
+   }
+  ]
+ },
+ "ORU_R01": {
+  "name": "ORU_R01",
+  "file": "mappings/messages/HL7 Message - FHIR R4_ ORU_R01 - Sheet1.csv",
+  "rows": [
+   {
+    "id": "ORU_R01.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Bundle",
+    "segmentMap": "MSH[Bundle]"
+   },
+   {
+    "id": "ORU_R01.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "MessageHeader[1]",
+    "segmentMap": "MSH[MessageHeader]"
+   },
+   {
+    "id": "ORU_R01.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "condition": "If there is a source in MSH-4, or known based on the configuration.",
+    "target": "Provenance[1]",
+    "segmentMap": "MSH[Provenance-Source]",
+    "references": "Provenance[1].target.reference=Bundle.id; Provenance[1].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "ORU_R01.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Provenance[2]",
+    "segmentMap": "MSH[Provenance-Transformation]",
+    "references": "Provenance[2].target.reference=Bundle.id"
+   },
+   {
+    "id": "ORU_R01.SFT",
+    "syntax": "[{ SFT }]",
+    "name": "Software Segment",
+    "condition": "If the software does represent not the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"derivation\""
+   },
+   {
+    "id": "ORU_R01.SFT",
+    "syntax": "[{ SFT }]",
+    "name": "Software Segment",
+    "condition": "If the software represents the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"source\""
+   },
+   {
+    "id": "ORU_R01.UAC",
+    "syntax": "[UAC]",
+    "name": "User Authentication Credential",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT",
+    "syntax": "{",
+    "name": "--- PATIENT_RESULT begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT",
+    "syntax": "[",
+    "name": "--- PATIENT begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Patient[1]",
+    "segmentMap": "PID[Patient]"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "condition": "IF PID-33 AND PID-34 VALUED",
+    "target": "Provenance[4]",
+    "segmentMap": "PID[Provenance-Patient]",
+    "references": "Provenance.target.reference=Patient[1].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.PD1",
+    "syntax": "[PD1]",
+    "name": "Additional Demographics",
+    "target": "Patient[1]",
+    "segmentMap": "PD1[Patient]"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.PD1",
+    "syntax": "[PD1]",
+    "name": "Additional Demographics",
+    "condition": "IF PD1-7 VALUED",
+    "target": "Observation[4]",
+    "segmentMap": "PD1[Observation-LivingWill]",
+    "references": "Observation[4].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Patient)",
+    "condition": "IF PRT-4.1 EQUALS \"PP\" AND PRT-4.3 EQUALS \"HL70443\"",
+    "target": "PractitionerRole[1]",
+    "segmentMap": "PRT[PractitionerRole]",
+    "references": "Patient[1].generalPractitioner.reference=PractitionerRole[1].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Patient)",
+    "condition": "IF PRT-4.1 NOT EQUALS \"PP\" OR PRT-4.3 NOT EQUALS \"HL70443\"",
+    "target": "RelatedPerson[1]",
+    "segmentMap": "PRT[RelatedPerson]",
+    "references": "RelatedPerson.patient.reference=Patient[1].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.NTE",
+    "syntax": "[{NTE}]",
+    "name": "Notes and Comments",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.NK1",
+    "syntax": "[{NK1}]",
+    "name": "Next of Kin/Associated Parties",
+    "condition": "The FHIR location will depend on the nature of the data being exchanged and how the systems use next of kin data",
+    "target": "RelatedPerson[2]",
+    "segmentMap": "NK1[RelatedPerson]",
+    "references": "RelatedPerson.patient.reference=Patient[1].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.NK1",
+    "syntax": "[{NK1}]",
+    "name": "Next of Kin/Associated Parties",
+    "condition": "The FHIR location will depend on the nature of the data being exchanged and how the systems use next of kin data",
+    "target": "Patient[1]",
+    "segmentMap": "NK1[Patient]"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.ARV",
+    "syntax": "[{ARV}]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.PATIENT_OBSERVATION",
+    "syntax": "[{",
+    "name": "--- PATIENT_OBSERVATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.PATIENT_OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation (for Patient ID)",
+    "condition": "IF OBX-5 LST.count LESS THAN OR EQUALS 1 OR OBX-2 IS \"NA\"",
+    "target": "Observation[1]",
+    "segmentMap": "OBX[Observation]",
+    "references": "Observation[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.PATIENT_OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation (for Patient ID)",
+    "condition": "IF OBX-5 LST.count GREATER THAN 1 AND OBX-2 IS NOT \"NA\"",
+    "target": "Observation[1]",
+    "segmentMap": "OBX[Observation-Component]",
+    "references": "Observation[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.PATIENT_OBSERVATION.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (Observation Participation)",
+    "condition": "IF PRT-10 VALUED",
+    "target": "Device",
+    "segmentMap": "PRT[Device]",
+    "references": "Observation[1].device.reference=Device.id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.PATIENT_OBSERVATION.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (Observation Participation)",
+    "condition": "IF PRT-9 VALUED OR IF PRT-14 VALUED",
+    "target": "Observation[1]",
+    "segmentMap": "PRT[Observation-Location]"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.PATIENT_OBSERVATION.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (Observation Participation)",
+    "condition": "IF PRT-5 VALUED",
+    "target": "PractitionerRole[1]",
+    "segmentMap": "PRT[PractitionerRole]",
+    "references": "Observation.performer.reference=PractitionerRole[1].id"
+   },
+   {
+    "id": "/ORU_R01.PATIENT_RESULT.PATIENT.PATIENT_OBSERVATION",
+    "syntax": "}]",
+    "name": "--- PATIENT_OBSERVATION end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.VISIT",
+    "syntax": "[",
+    "name": "--- VISIT begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.VISIT.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Encounter[1]",
+    "segmentMap": "PV1[Encounter]",
+    "references": "Encounter.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.VISIT.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-43 VALUED",
+    "target": "Basic",
+    "segmentMap": "PV1[Basic-EncounterHistory]",
+    "references": "Basic.extension-EncounterHistory.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.VISIT.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Patient[1]",
+    "segmentMap": "PV1[Patient]"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.VISIT.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-20 VALUE",
+    "target": "Coverage[1]",
+    "segmentMap": "PV1[Coverage]",
+    "references": "Coverage.beneficiary.reference=Patient[1].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.VISIT.PV2",
+    "syntax": "[PV2]",
+    "name": "Patient Visit - Additional Info",
+    "target": "Encounter[1]",
+    "segmentMap": "PV2[Encounter]",
+    "references": "Encounter.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.PATIENT.VISIT.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Patient Visit)",
+    "condition": "If PRT-2 is valued to \"D\", delete, then the implementer needs to consider whether to create a Device with Device.status = \"inactive\".",
+    "target": "PractitionerRole[2]",
+    "segmentMap": "PRT[PractitionerRole]",
+    "references": "Encounter[1].participant.individual.reference=PractitionerRole[2].id"
+   },
+   {
+    "id": "/ORU_R01.PATIENT_RESULT.PATIENT.VISIT",
+    "syntax": "]",
+    "name": "--- VISIT end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ORU_R01.PATIENT_RESULT.PATIENT",
+    "syntax": "]",
+    "name": "--- PATIENT end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION",
+    "syntax": "{",
+    "name": "--- ORDER_OBSERVATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.COMMON_ORDER",
+    "syntax": "[",
+    "name": "--- COMMON_ORDER begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.COMMON_ORDER.ORC",
+    "syntax": "ORC",
+    "name": "Order common",
+    "target": "DiagnosticReport[1]",
+    "segmentMap": "ORC[DiagnosticReport]",
+    "references": "DiagnosticReport[1].encounter.reference=Encounter[1].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.COMMON_ORDER.ORC",
+    "syntax": "ORC",
+    "name": "Order common",
+    "condition": "If a ServiceRequest needs to be created for the receiver.",
+    "target": "ServiceRequest[1]",
+    "segmentMap": "ORC[ServiceRequest]",
+    "references": "DiagnosticReport[1].basedOn.reference=ServiceRequest[1].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.COMMON_ORDER.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Observation)",
+    "condition": "IF PRT-4.1 EQUALS \"OP\" AND PRT-4.3 EQUALS \"HL70443\"",
+    "target": "PractitionerRole[3]",
+    "segmentMap": "PRT[PractitionerRole]",
+    "references": "ServiceRequest[1].requester.reference=PractitionerRole[3].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.COMMON_ORDER.ORDER_DOCUMENT",
+    "syntax": "[",
+    "name": "--- ORDER_DOCUMENT begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.COMMON_ORDER.ORDER_DOCUMENT.OBX",
+    "syntax": "OBX",
+    "name": "Observation containing Document",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.COMMON_ORDER.ORDER_DOCUMENT.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation",
+    "condition": "If PRT-2 is valued to \"D\", delete, then the implementer needs to consider whether to create a Device with Device.status = \"inactive\".",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.COMMON_ORDER.ORDER_DOCUMENT.TXA",
+    "syntax": "TXA",
+    "name": "Transcription Document Header",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.COMMON_ORDER.ORDER_DOCUMENT",
+    "syntax": "]",
+    "name": "--- ORDER DOCUMENT end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.COMMON_ORDER",
+    "syntax": "]",
+    "name": "--- COMMON ORDER end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.OBR",
+    "syntax": "OBR",
+    "name": "Observations Request",
+    "target": "DiagnosticReport[1]",
+    "segmentMap": "OBR[DiagnosticReport]"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.OBR",
+    "syntax": "OBR",
+    "name": "Observations Request",
+    "target": "Specimen[1]",
+    "segmentMap": "OBR[Specimen]",
+    "references": "DiagnosticReport[1].specimen.reference=Specimen.id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.OBR",
+    "syntax": "OBR",
+    "name": "Observations Request",
+    "condition": "IF ORC VALUED",
+    "target": "ServiceRequest[1]",
+    "segmentMap": "OBR[ServiceRequest]"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.NTE",
+    "syntax": "{[NTE]}",
+    "name": "Notes and comments",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Observation)",
+    "condition": "IF PRT-4.1 IN (\"ARI\",\"TN\",\"TR\") AND PRT-4.3 EQUALS \"HL70443\"",
+    "target": "PractitionerRole[4]",
+    "segmentMap": "PRT[PractitionerRole]",
+    "references": "DiagnosticReport[1].performer.reference=PractitionerRole[4].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Observation)",
+    "condition": "IF PRT-4.1 EQUALS \"PRI\" AND PRT-4.3 EQUALS \"HL70443\"",
+    "target": "PractitionerRole[5]",
+    "segmentMap": "PRT[PractitionerRole]",
+    "references": "DiagnosticReport[1].resultsInterpreter.reference=PractitionerRole[5].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Observation)",
+    "condition": "IF PRT-4.1 EQUALS \"SC\" AND PRT-4.3 EQUALS \"HL70443\"",
+    "target": "PractitionerRole[6]",
+    "segmentMap": "PRT[PractitionerRole]",
+    "references": "DiagnosticReport[1].specimen[1](Specimen.collection.collector.reference)=PractitionerRole[6].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for Observation)",
+    "condition": "IF PRT-4.1 EQUALS \"OP\" AND PRT-4.3 EQUALS \"HL70443\"",
+    "target": "PractitionerRole[3]",
+    "segmentMap": "PRT[PractitionerRole]",
+    "references": "DiagnosticReport[1].requester.reference=PractitionerRole[3].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.TIMING_QTY",
+    "syntax": "[{",
+    "name": "--- TIMING_QTY begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.TIMING_QTY.TQ1",
+    "syntax": "TQ1",
+    "name": "Timing/Quantity",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.TIMING_QTY.TQ2",
+    "syntax": "[{TQ2}]",
+    "name": "Timing/Quantity Order Sequence",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.TIMING_QTY",
+    "syntax": "}]",
+    "name": "--- TIMING_QTY end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.CTD",
+    "syntax": "[CTD]",
+    "name": "Contact Data",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.OBSERVATION",
+    "syntax": "[{",
+    "name": "--- OBSERVATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation related to OBR",
+    "condition": "IF (OBX-5 LST.count LESS THAN OR EQUALS 1 OR OBX-2 IS \"NA\") AND OBX-29 NOT IN (\"QST\", \"SCI\")",
+    "target": "Observation[2]",
+    "segmentMap": "OBX[Observation]",
+    "references": "DiagnosticReport.result.reference=Observation[2].id Observation[2].subject.reference=Patient[1].id; Observation[2].encounter.reference=Encounter[1].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation related to OBR",
+    "condition": "IF (OBX-5 LST.count GREATER THAN 1 AND OBX-2 IS NOT \"NA\") AND OBX-29 NOT IN (\"QST\", \"SCI\")",
+    "target": "Observation[2]",
+    "segmentMap": "OBX[Observation-Component]",
+    "references": "DiagnosticReport.result.reference=Observation[2].id Observation[2].subject.reference=Patient[1].id; Observation[2].encounter.reference=Encounter[1].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation related to OBR",
+    "condition": "IF (OBX-5 LST.count LESS THAN OR EQUALS 1 OR OBX-2 IS \"NA\") AND OBX-29 IN (\"QST\", \"SCI\")",
+    "target": "Observation[2]",
+    "segmentMap": "OBX[Observation]",
+    "references": "ServiceRequest[1].supportingInfo.reference=Observation[1].id; Observation[1].subject.id=Patient[1].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation related to OBR",
+    "condition": "IF (OBX-5 LST.count GREATER THAN 1 AND OBX-2 IS NOT \"NA\") AND OBX-29 AND OBX-29 IN (\"QST\", \"SCI\")",
+    "target": "Observation[2]",
+    "segmentMap": "OBX[Observation-Component]",
+    "references": "ServiceRequest[1].supportingInfo.reference=Observation[1].id; Observation[1].subject.id=Patient[1].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.OBSERVATION.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (Observation Participation)",
+    "condition": "IF PRT-10 VALUED",
+    "target": "Device",
+    "segmentMap": "PRT[Device]",
+    "references": "Observation[2].device.reference=Device.id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.OBSERVATION.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (Observation Participation)",
+    "condition": "IF PRT-9 VALUED OR IF PRT-14 VALUED",
+    "target": "Observation[2]",
+    "segmentMap": "PRT[Observation-Location]"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.OBSERVATION.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (Observation Participation)",
+    "condition": "IF PRT-5 VALUED",
+    "target": "PractitionerRole[7]",
+    "segmentMap": "PRT[PractitionerRole]",
+    "references": "Observation[2].performer.reference=PractitionerRole[7].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.OBSERVATION.NTE",
+    "syntax": "{[NTE]}",
+    "name": "Notes and comments",
+    "target": "Observation[2].note",
+    "segmentMap": "NTE[ServiceRequest]"
+   },
+   {
+    "id": "/ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.OBSERVATION",
+    "syntax": "}]",
+    "name": "--- OBSERVATION end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.FT1",
+    "syntax": "[{FT1}]",
+    "name": "Financial Transaction",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.CTI",
+    "syntax": "{[CTI]}",
+    "name": "Clinical Trial Identification",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.SPECIMEN",
+    "syntax": "[{",
+    "name": "--- SPECIMEN begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.SPECIMEN.SPM",
+    "syntax": "SPM",
+    "name": "Specimen",
+    "target": "Specimen[n]",
+    "segmentMap": "SPM[Specimen]",
+    "references": "DiagnosticReport[1].specimen.reference=Specimen[n].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.SPECIMEN.SPECIMEN_OBSERVATION",
+    "syntax": "[{",
+    "name": "--- SPECIMEN_OBSERVATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.SPECIMEN.SPECIMEN_OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation (for Patient ID)",
+    "condition": "IF OBX-5 LST.count LESS THAN OR EQUALS 1 OR OBX-2 IS \"NA\"",
+    "target": "Observation[3]",
+    "segmentMap": "OBX[Observation]",
+    "references": "Observation[3].subject.reference=Patient[1].id Observation[3].focus.reference=Specimen[n].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.SPECIMEN.SPECIMEN_OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation (for Patient ID)",
+    "condition": "IF OBX-5 LST.count GREATER THAN 1 AND OBX-2 IS NOT \"NA\"",
+    "target": "Observation[3]",
+    "segmentMap": "OBX[Observation-Component]",
+    "references": "Observation[3].subject.reference=Patient[1].id Observation[3].focus.reference=Specimen[n].id"
+   },
+   {
+    "id": "ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.SPECIMEN.SPECIMEN_OBSERVATION.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (Observation Participation)",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.SPECIMEN.SPECIMEN_OBSERVATION",
+    "syntax": "}]",
+    "name": "--- SPECIMEN_OBSERVATION end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION.SPECIMEN",
+    "syntax": "}]",
+    "name": "--- SPECIMEN end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ORU_R01.PATIENT_RESULT.ORDER_OBSERVATION",
+    "syntax": "}",
+    "name": "--- ORDER_OBSERVATION end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/ORU_R01.PATIENT_RESULT",
+    "syntax": "}",
+    "name": "--- PATIENT_RESULT end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "ORU_R01.DSC",
+    "syntax": "[DSC]",
+    "name": "Continuation Pointer",
+    "target": null,
+    "segmentMap": null
+   }
+  ]
+ },
+ "SIU_S12": {
+  "name": "SIU_S12",
+  "file": "mappings/messages/HL7 Message - FHIR R4_ SIU_S12 - Sheet1.csv",
+  "rows": [
+   {
+    "id": "SIU_S12.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Bundle",
+    "segmentMap": "MSH[Bundle]"
+   },
+   {
+    "id": "SIU_S12.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "MessageHeader[1]",
+    "segmentMap": "MSH[MessageHeader]"
+   },
+   {
+    "id": "SIU_S12.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Provenance[1]",
+    "segmentMap": "MSH[Provenance-Source]",
+    "references": "Provenance[1].target.reference=Bundle.id; Provenance[1].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "SIU_S12.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Provenance[2]",
+    "segmentMap": "MSH[Provenance-Transformation]",
+    "references": "Provenance[2].target.reference=Bundle.id"
+   },
+   {
+    "id": "SIU_S12.SCH",
+    "syntax": "SCH",
+    "name": "Schedule Activity Information",
+    "target": "Appointment[1]",
+    "segmentMap": "SCH[Appointment]",
+    "references": "Appointment.participant.actor=Patient[1].id"
+   },
+   {
+    "id": "SIU_S12.SCH",
+    "syntax": "SCH",
+    "name": "Schedule Activity Information",
+    "condition": "IF SCH-26 or SCH-27 VALUED",
+    "target": "ServiceRequest[1..n]",
+    "segmentMap": "SCH[ServiceRequest]",
+    "references": "Appointment[1].basedOn=ServiceRequest[1..n].id ServiceRequest[1..n].subject=Patient[1].id"
+   },
+   {
+    "id": "SIU_S12.SCH",
+    "syntax": "SCH",
+    "name": "Schedule Activity Information",
+    "target": "Provenance[3]",
+    "segmentMap": "SCH[Provenance]"
+   },
+   {
+    "id": "SIU_S12.NTE",
+    "syntax": "[ { NTE } ]",
+    "name": "Notes and Comments",
+    "target": "Appointment[1]",
+    "segmentMap": "NTE[Appointment-Comment]",
+    "references": "Appointment.participant.actor=Patient[1].id"
+   },
+   {
+    "id": "SIU_S12.PATIENT",
+    "syntax": "[{",
+    "name": "--- PATIENT begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "SIU_S12.PATIENT.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Patient[1]",
+    "segmentMap": "PID[Patient]"
+   },
+   {
+    "id": "SIU_S12.PATIENT.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "target": "Appointment[1]",
+    "segmentMap": "PID[Appointment]",
+    "references": "Appointment.participant.actor=Patient[1].id"
+   },
+   {
+    "id": "SIU_S12.PATIENT.PID",
+    "syntax": "PID",
+    "name": "Patient Identification",
+    "condition": "IF PID-33 AND PID-34 VALUED",
+    "target": "Provenance[4]",
+    "segmentMap": "PID[Provenance-Patient]",
+    "references": "Provenance.target.reference=Patient[1].id"
+   },
+   {
+    "id": "SIU_S12.PATIENT.PV1",
+    "syntax": "[ PV1 ]",
+    "name": "Patient Visit",
+    "target": "Encounter[1]",
+    "segmentMap": "PV1[Encounter]",
+    "references": "Encounter[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "SIU_S12.PATIENT.PV1",
+    "syntax": "[ PV1 ]",
+    "name": "Patient Visit",
+    "condition": "IF PV1-43 VALUED",
+    "target": "Basic",
+    "segmentMap": "PV1[Basic-EncounterHistory]",
+    "references": "Basic.extension-EncounterHistory.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "SIU_S12.PATIENT.PV1",
+    "syntax": "[ PV1 ]",
+    "name": "Patient Visit",
+    "target": "Patient[1]",
+    "segmentMap": "PV1[Patient]"
+   },
+   {
+    "id": "SIU_S12.PATIENT.PV1",
+    "syntax": "[ PV1 ]",
+    "name": "Patient Visit",
+    "condition": "IF PV1-20 VALUE",
+    "target": "Coverage[1]",
+    "segmentMap": "PV1[Coverage]",
+    "references": "Coverage.beneficiary.reference=Patient[1].id"
+   },
+   {
+    "id": "SIU_S12.PATIENT.PV2",
+    "syntax": "[ PV2 ]",
+    "name": "Patient Visit - Additional Info",
+    "target": "Encounter[1]",
+    "segmentMap": "PV2[Encounter]",
+    "references": "Encounter.subject=Patient[1].id"
+   },
+   {
+    "id": "SIU_S12.PATIENT.OBX",
+    "syntax": "[ { OBX } ]",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count LESS THAN OR EQUALS 1 OR OBX-2 IS \"NA\"",
+    "target": "Observation[1]",
+    "segmentMap": "OBX[Observation]",
+    "references": "Observation.subject=Patient[1].id"
+   },
+   {
+    "id": "SIU_S12.PATIENT.OBX",
+    "syntax": "[ { OBX } ]",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count GREATER THAN 1 AND OBX-2 IS NOT \"NA\"",
+    "target": "Observation[1]",
+    "segmentMap": "OBX[Observation-Component]",
+    "references": "Observation.subject=Patient[1].id"
+   },
+   {
+    "id": "SIU_S12.PATIENT.DG1",
+    "syntax": "[ { DG1 } ]",
+    "name": "Diagnosis",
+    "condition": "If in context of the patient",
+    "target": "Condition[1]",
+    "segmentMap": "DG1[Condition]",
+    "references": "Condition[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "SIU_S12.PATIENT",
+    "syntax": "}]",
+    "name": "--- PATIENT end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "SIU_S12.RESOURCES",
+    "syntax": "{",
+    "name": "--- RESOURCES begin RGS",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "SIU_S12.RESOURCES.RGS",
+    "syntax": "RGS",
+    "name": "Resource Group Segment",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "SIU_S12.RESOURCES.SERVICE",
+    "syntax": "[{",
+    "name": "--- SERVICE begin AIS",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "SIU_S12.RESOURCES.SERVICE.AIS",
+    "syntax": "AIS",
+    "name": "Appointment Information - Service",
+    "condition": "Determine which AIS populates Appointment if there is more than one AIS.",
+    "target": "Appointment[1]",
+    "segmentMap": "AIS[Appointment]"
+   },
+   {
+    "id": "SIU_S12.RESOURCES.SERVICE.AIS",
+    "syntax": "AIS",
+    "name": "Appointment Information - Service",
+    "condition": "IF SCH-26 IS VALUED OR SCH-27 IS VALUED",
+    "target": "ServiceRequest[n]",
+    "segmentMap": "AIS[ServiceRequest]"
+   },
+   {
+    "id": "SIU_S12.RESOURCES.SERVICE.NTE",
+    "syntax": "[ { NTE } ]",
+    "name": "Notes and Comments",
+    "condition": "Determine which AIS populates Appointment if there is more than one AIS.",
+    "target": "Appointment[1]",
+    "segmentMap": "NTE[Appointment-Comment]",
+    "references": "Appointment.participant.actor=Patient[1].id"
+   },
+   {
+    "id": "SIU_S12.RESOURCES.SERVICE",
+    "syntax": "}]",
+    "name": "--- SERVICE end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "SIU_S12.RESOURCES.GENERAL_RESOURCE",
+    "syntax": "[{",
+    "name": "--- GENERAL_RESOURCE begin AIG",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "SIU_S12.RESOURCES.GENERAL_RESOURCE.AIG",
+    "syntax": "AIG",
+    "name": "Appointment Information - General Resource",
+    "condition": "Determine which AIG populates Appointment if there is more than one AIG.",
+    "target": "Appointment[1]",
+    "segmentMap": "AIG[Appointment]"
+   },
+   {
+    "id": "SIU_S12.RESOURCES.GENERAL_RESOURCE.NTE",
+    "syntax": "[ { NTE } ]",
+    "name": "Notes and Comments",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "SIU_S12.RESOURCES.GENERAL_RESOURCE",
+    "syntax": "}]",
+    "name": "--- GENERAL_RESOURCE end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "SIU_S12.RESOURCES.LOCATION_RESOURCE",
+    "syntax": "[{",
+    "name": "--- LOCATION_RESOURCE begin AIL",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "SIU_S12.RESOURCES.LOCATION_RESOURCE.AIL",
+    "syntax": "AIL",
+    "name": "Appointment Information - Location Resource",
+    "condition": "Determine which AIL populates Appointment if there is more than one AIL.",
+    "target": "Appointment[1]",
+    "segmentMap": "AIL[Appointment]"
+   },
+   {
+    "id": "SIU_S12.RESOURCES.LOCATION_RESOURCE.NTE",
+    "syntax": "[ { NTE } ]",
+    "name": "Notes and Comments",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "SIU_S12.RESOURCES.LOCATION_RESOURCE",
+    "syntax": "}]",
+    "name": "--- LOCATION_RESOURCE end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "SIU_S12.RESOURCES.PERSONNEL_RESOURCE",
+    "syntax": "[{",
+    "name": "--- PERSONNEL_RESOURCE begin AIP",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "SIU_S12.RESOURCES.PERSONNEL_RESOURCE.AIP",
+    "syntax": "AIP",
+    "name": "Appointment Information - Personnel Resource",
+    "target": "Appointment[1]",
+    "segmentMap": "AIP[Appointment]"
+   },
+   {
+    "id": "SIU_S12.RESOURCES.PERSONNEL_RESOURCE.NTE",
+    "syntax": "[ { NTE } ]",
+    "name": "Notes and Comments",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "SIU_S12.RESOURCES.PERSONNEL_RESOURCE",
+    "syntax": "}]",
+    "name": "--- PERSONNEL_RESOURCE end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "SIU_S12.RESOURCES",
+    "syntax": "}",
+    "name": "--- RESOURCES end",
+    "target": null,
+    "segmentMap": null
+   }
+  ]
+ },
+ "VXU_V04": {
+  "name": "VXU_V04",
+  "file": "mappings/messages/HL7 Message - FHIR R4_ VXU_V04 - Sheet1.csv",
+  "rows": [
+   {
+    "id": "VXU_V04.MSH",
+    "syntax": "MSH",
+    "name": "Message Header",
+    "target": "Bundle",
+    "segmentMap": "MSH[Bundle]"
+   },
+   {
+    "id": "VXU_V04.MSH",
+    "syntax": "MSH",
+    "name": "Message Header Segment",
+    "target": "MessageHeader[1]",
+    "segmentMap": "MSH[MessageHeader]"
+   },
+   {
+    "id": "VXU_V04.MSH",
+    "syntax": "MSH",
+    "name": "Message Header Segment",
+    "condition": "If there is a source in MSH-4, or known based on the configuration.",
+    "target": "Provenance[1]",
+    "segmentMap": "MSH[Provenance-Source]",
+    "references": "Provenance[1].target.reference=Bundle.id; Provenance[1].target.reference=MessageHeader[1].id"
+   },
+   {
+    "id": "VXU_V04.MSH",
+    "syntax": "MSH",
+    "name": "Message Header Segment",
+    "target": "Provenance[2]",
+    "segmentMap": "MSH[Provenance-Transformation]",
+    "references": "Provenance[2].target.reference=Bundle.id"
+   },
+   {
+    "id": "VXU_V04.SFT",
+    "syntax": "[{ SFT }]",
+    "name": "Software",
+    "condition": "If the software does represent not the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"derivation\""
+   },
+   {
+    "id": "VXU_V04.SFT",
+    "syntax": "[{ SFT }]",
+    "name": "Software",
+    "condition": "If the software represents the original source system",
+    "target": "Provenance[1].entity.what(Device)",
+    "segmentMap": "SFT[Device]",
+    "references": "Provenance[1].entity.what.reference=Device.id Provenance[1].entity.role=\"source\""
+   },
+   {
+    "id": "VXU_V04.UAC",
+    "syntax": "[ UAC ]",
+    "name": "User Authentication Credential",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.PID",
+    "syntax": "PID",
+    "name": "Patient Identification Segment",
+    "target": "Patient[1]",
+    "segmentMap": "PID[Patient]"
+   },
+   {
+    "id": "VXU_V04.PID",
+    "syntax": "PID",
+    "name": "Patient Identification Segment",
+    "condition": "IF PID-33 AND PID-34 VALUED",
+    "target": "Provenance[4]",
+    "segmentMap": "PID[Provenance-Patient]",
+    "references": "Provenance.target.reference=Patient[1].id"
+   },
+   {
+    "id": "VXU_V04.PD1",
+    "syntax": "[ PD1 ]",
+    "name": "Additional Demographics",
+    "target": "Patient[1]",
+    "segmentMap": "PD1[Patient]"
+   },
+   {
+    "id": "VXU_V04.PD1",
+    "syntax": "[ PD1 ]",
+    "name": "Additional Demographics",
+    "condition": "IF PD1-7 VALUED",
+    "target": "Observation[3]",
+    "segmentMap": "PD1[Observation-LivingWill]",
+    "references": "Observation[3].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "VXU_V04.NK1",
+    "syntax": "[{ NK1 }]",
+    "name": "Next of Kin/Associated Parties",
+    "target": "RelatedPerson[1]",
+    "segmentMap": "NK1[RelatedPerson]",
+    "references": "RelatedPerson.patient.reference=Patient[PID].id"
+   },
+   {
+    "id": "VXU_V04.NK1",
+    "syntax": "[{ NK1 }]",
+    "name": "Next of Kin/Associated Parties",
+    "target": "Patient[1]",
+    "segmentMap": "NK1[Patient]"
+   },
+   {
+    "id": "VXU_V04.ARV",
+    "syntax": "[{ ARV }]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.PATIENT_VISIT",
+    "syntax": "[",
+    "name": "--- PATIENT_VISIT begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.PATIENT_VISIT.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "Only if the system wants to know about the encounter related to the immunization event",
+    "target": "Encounter[1]",
+    "segmentMap": "PV1[Encounter]",
+    "references": "Encounter.subject.reference=Patient[PID].id"
+   },
+   {
+    "id": "VXU_V04.PATIENT_VISIT.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-43 VALUED",
+    "target": "Basic",
+    "segmentMap": "PV1[Basic-EncounterHistory]",
+    "references": "Basic.extension-EncounterHistory.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "VXU_V04.PATIENT_VISIT.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "target": "Patient[1]",
+    "segmentMap": "PV1[Patient]"
+   },
+   {
+    "id": "VXU_V04.PATIENT_VISIT.PV1",
+    "syntax": "PV1",
+    "name": "Patient Visit",
+    "condition": "IF PV1-20 VALUE",
+    "target": "Coverage[1]",
+    "segmentMap": "PV1[Coverage]",
+    "references": "Coverage.beneficiary.reference=Patient[1].id"
+   },
+   {
+    "id": "VXU_V04.PATIENT_VISIT.PV2",
+    "syntax": "[ PV2 ]",
+    "name": "Patient Visit – Additional Info",
+    "target": "Encounter[1]",
+    "segmentMap": "PV2[Encounter]"
+   },
+   {
+    "id": "VXU_V04.PATIENT_VISIT.ARV",
+    "syntax": "[{ ARV }]",
+    "name": "Access Restrictions",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/VXU_V04.PATIENT_VISIT",
+    "syntax": "]",
+    "name": "--- PATIENT_VISIT end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.GT1",
+    "syntax": "[{ GT1 }]",
+    "name": "Guarantor",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.INSURANCE",
+    "syntax": "[{",
+    "name": "--- INSURANCE begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.INSURANCE",
+    "syntax": "IN1",
+    "name": "Insurance",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.INSURANCE",
+    "syntax": "[ IN2 ]",
+    "name": "Insurance Additional Information",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.INSURANCE",
+    "syntax": "[ IN3 ]",
+    "name": "Insurance Additional Information, Certification",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/VXU_V04.INSURANCE",
+    "syntax": "}]",
+    "name": "--- INSURANCE end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.PERSON_OBSERVATION",
+    "syntax": "[{",
+    "name": "--- PERSON_OBSERVATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.PERSON_OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count LESS THAN OR EQUALS 1 OR OBX-2 IS \"NA\"",
+    "target": "Observation[1]",
+    "segmentMap": "OBX[Observation]",
+    "references": "Observation[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "VXU_V04.PERSON_OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count GREATER THAN 1 AND OBX-2 IS NOT \"NA\"",
+    "target": "Observation[1]",
+    "segmentMap": "OBX[Observation-Component]",
+    "references": "Observation[1].subject.reference=Patient[1].id"
+   },
+   {
+    "id": "VXU_V04.PERSON_OBSERVATION.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation (for Observation)",
+    "condition": "IF PRT-10 VALUED",
+    "target": "Device[1]",
+    "segmentMap": "PRT[Device]",
+    "references": "Observation[1].device.reference=Device.id"
+   },
+   {
+    "id": "VXU_V04.PERSON_OBSERVATION.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation (for Observation)",
+    "condition": "IF PRT-9 VALUED OR IF PRT-14 VALUED",
+    "target": "Observation[1]",
+    "segmentMap": "PRT[Observation-Location]"
+   },
+   {
+    "id": "VXU_V04.PERSON_OBSERVATION.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation (for Observation)",
+    "condition": "IF PRT-5 VALUED",
+    "target": "PractitionerRole[1]",
+    "segmentMap": "PRT[PractitionerRole]",
+    "references": "Observation.performer.reference=PractitionerRole[1].id"
+   },
+   {
+    "id": "VXU_V04.PERSON_OBSERVATION.NTE",
+    "syntax": "[{ NTE }]",
+    "name": "Notes (Regarding Patient Observation)",
+    "target": "Observation[1].note",
+    "segmentMap": "NTE[ServiceRequest]"
+   },
+   {
+    "id": "/VXU_V04.PERSON_OBSERVATION",
+    "syntax": "}]",
+    "name": "--- PERSON_OBSERVATION end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.ORDER",
+    "syntax": "[{",
+    "name": "--- ORDER begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.ORDER.ORC",
+    "syntax": "ORC",
+    "name": "Common Order",
+    "target": "Immunization[1]",
+    "segmentMap": "ORC[Immunization]",
+    "references": "Immunzation.patient.reference=Patient[1].id"
+   },
+   {
+    "id": "VXU_V04.ORDER.ORC",
+    "syntax": "ORC",
+    "name": "Common Order",
+    "condition": "Only if the system wants to know about the order that lead to the immunization event",
+    "target": "ServiceRequest[1]",
+    "segmentMap": "ORC[ServiceRequest]",
+    "references": "ServiceRequest.subject.reference=Patient[1].id"
+   },
+   {
+    "id": "VXU_V04.ORDER.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for ORC)",
+    "condition": "IF PRT-4.1 EQUALS \"OP\" AND PRT-4.3 EQUALS \"HL70443\"",
+    "target": "PractitionerRole[2]",
+    "segmentMap": "PRT[PractitionerRole]",
+    "references": "Immunization.performer.actor.reference=PractitionerRole[2].id"
+   },
+   {
+    "id": "VXU_V04.ORDER.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for ORC)",
+    "condition": "IF PRT-4.1 EQUALS \"OP\" AND PRT-4.3 EQUALS \"HL70443\"",
+    "target": "Immunization[1].performer.function.coding.code=\"OP'\"",
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.ORDER.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for ORC)",
+    "condition": "IF PRT-4.1 EQUALS \"OP\" AND PRT-4.3 EQUALS \"HL70443\"",
+    "target": "Immunization[1].performer.function.coding.system=\"http://terminology.hl7.org/CodeSystem/v2-0443\"",
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.ORDER.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for ORC)",
+    "condition": "IF PRT-4.1 EQUALS \"AP\" AND PRT-4.3 EQUALS \"HL70443\"",
+    "target": "PractitionerRole[3]",
+    "segmentMap": "PRT[PractitionerRole]",
+    "references": "Immunization.performer.actor.reference=PractitionerRole[3].id"
+   },
+   {
+    "id": "VXU_V04.ORDER.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for ORC)",
+    "condition": "IF PRT-4.1 EQUALS \"AP\" AND PRT-4.3 EQUALS \"HL70443\"",
+    "target": "Immunization[1].performer.function.coding.code=\"AP'\"",
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.ORDER.PRT",
+    "syntax": "[{PRT}]",
+    "name": "Participation (for ORC)",
+    "condition": "IF PRT-4.1 EQUALS \"AP\" AND PRT-4.3 EQUALS \"HL70443\"",
+    "target": "Immunization[1].performer.function.coding.system=\"http://terminology.hl7.org/CodeSystem/v2-0443\"",
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.ORDER.TIMING",
+    "syntax": "[{",
+    "name": "--- TIMING begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.ORDER.TIMING.TQ1",
+    "syntax": "TQ1",
+    "name": "Timing/Quantity",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.ORDER.TIMING.TQ2",
+    "syntax": "[{ TQ2 }]",
+    "name": "Timing/Quantity Order Sequence",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/VXU_V04.ORDER.TIMING",
+    "syntax": "}]",
+    "name": "--- TIMING end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.ORDER.RXA",
+    "syntax": "RXA",
+    "name": "Pharmacy Administration Segment",
+    "target": "Immunization[1]",
+    "segmentMap": "RXA[Immunization]"
+   },
+   {
+    "id": "VXU_V04.ORDER.RXR",
+    "syntax": "[ RXR ]",
+    "name": "Pharmacy Route",
+    "target": "Immunization[1]",
+    "segmentMap": "RXR[Immunization]"
+   },
+   {
+    "id": "VXU_V04.ORDER.OBSERVATION",
+    "syntax": "[{",
+    "name": "--- OBSERVATION begin",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "VXU_V04.ORDER.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count LESS THAN OR EQUALS 1 AND OBX-2 IS \"NA\"",
+    "target": "Observation[2]",
+    "segmentMap": "OBX[Observation]",
+    "references": "Observation[2].subject.reference=Patient[1].id; Observation[2].partOf.reference=Immunization[1].id"
+   },
+   {
+    "id": "VXU_V04.ORDER.OBSERVATION.OBX",
+    "syntax": "OBX",
+    "name": "Observation/Result",
+    "condition": "IF OBX-5 LST.count GREATER THAN 1 AND OBX-2 IS NOT \"NA\"",
+    "target": "Observation[2]",
+    "segmentMap": "OBX[Observation-Component]",
+    "references": "Observation[2].subject.reference=Patient[1].id; Observation[2].partOf.reference=Immunization[1].id"
+   },
+   {
+    "id": "VXU_V04.ORDER.OBSERVATION.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation (for Observation)",
+    "condition": "IF PRT-10 VALUED",
+    "target": "Device[2]",
+    "segmentMap": "PRT[Device]",
+    "references": "Observation[1].device.reference=Device.id"
+   },
+   {
+    "id": "VXU_V04.ORDER.OBSERVATION.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation (for Observation)",
+    "condition": "IF PRT-9 VALUED OR IF PRT-14 VALUED",
+    "target": "Observation[2]",
+    "segmentMap": "PRT[Observation-Location]"
+   },
+   {
+    "id": "VXU_V04.ORDER.OBSERVATION.PRT",
+    "syntax": "[{ PRT }]",
+    "name": "Participation (for Observation)",
+    "condition": "IF PRT-5 VALUED",
+    "target": "PractitionerRole[4]",
+    "segmentMap": "PRT[PractitionerRole]",
+    "references": "Observation[2].performer.reference=PractitionerRole[1].id"
+   },
+   {
+    "id": "VXU_V04.ORDER.OBSERVATION.NTE",
+    "syntax": "[{ NTE }]",
+    "name": "Notes (Regarding Immunization)",
+    "target": "Observation[2].note",
+    "segmentMap": "NTE[ServiceRequest]"
+   },
+   {
+    "id": "/VXU_V04.ORDER.OBSERVATION",
+    "syntax": "}]",
+    "name": "--- OBSERVATION end",
+    "target": null,
+    "segmentMap": null
+   },
+   {
+    "id": "/VXU_V04.ORDER",
+    "syntax": "}]",
+    "name": "--- ORDER end",
+    "target": null,
+    "segmentMap": null
+   }
+  ]
+ }
+}

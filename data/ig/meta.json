@@ -1,0 +1,24 @@
+{
+ "source": "HL7/v2-to-fhir (spreadsheets behind the HL7 Version 2 to FHIR IG)",
+ "repository": "https://github.com/HL7/v2-to-fhir",
+ "commit": "873b331b3890c8bc5d62ef9b4dabb41801aac70d",
+ "commitDate": "2025-10-07T12:47:52-05:00",
+ "ig": {
+  "id": "hl7.fhir.uv.v2mappings",
+  "version": "1.0.0",
+  "releaseLabel": "STU 1",
+  "fhirVersion": "4.0.1",
+  "url": "https://hl7.org/fhir/uv/v2mappings/"
+ },
+ "licence": {
+  "repository": "Apache-2.0 (LICENSE in the repository)",
+  "igPackage": "CC0-1.0 (sushi-config.yaml)"
+ },
+ "note": "The IG maps HL7 v2 in general (it is written against later v2 versions). Rows naming fields that do not exist in v2.5.1 are flagged by the server; this data is reference material, not the server's conversion rules.",
+ "counts": {
+  "conceptMaps": 99,
+  "segmentMaps": 75,
+  "datatypeMaps": 105,
+  "messageMaps": 13
+ }
+}
