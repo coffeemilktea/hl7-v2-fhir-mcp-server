@@ -86,7 +86,7 @@ test("lookup_concept_map shows server, IG, comparison and v2.5.1 status", async 
   assert.equal(cwe.structuredContent.v251.status, "not-in-2.5.1");
   const bad = await call("lookup_concept_map", { table: "0002", code: "L" });
   assert.equal(bad.isError, true);
-  assert.match(bad.content[0].text, /not in the ConceptMap.*v2\.5\.1 status/);
+  assert.match(bad.content[0].text, /not in the ConceptMap.*v2\.5\.1 status: not a code in the v2\.5\.1 table/);
 });
 
 test("compare_with_ig: summary and per-table rows", async () => {

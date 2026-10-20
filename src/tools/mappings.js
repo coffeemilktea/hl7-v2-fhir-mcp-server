@@ -205,18 +205,19 @@ export function register(server) {
         );
       }
       const v251 = core.checkCode(table, code);
+      const v251Status = !v251?.table ? "table not in v2.5.1 data" : v251.known ? v251.status : "not a code in the v2.5.1 table";
       const hit = s?.map.find((x) => x.code === code) ?? s?.map.find((x) => x.code.toUpperCase() === code.toUpperCase());
       const igHits = igMaps.map((m) => ({ map: m.name, ...(m.map.find((e) => e.code === code) ?? m.map.find((e) => e.code?.toUpperCase() === code.toUpperCase()) ?? { target: null, note: "Code not listed in this IG map." }) }));
       if (!hit && !igHits.some((h) => h.code)) {
         return fail(
-          `'${code}' is not in the ConceptMap for table ${table}${s ? ` (${s.name})` : ""}. v2.5.1 status: ${v251?.status ?? "unknown table"}.${s ? ` Server codes: ${s.map.map((x) => x.code).join(", ")}.` : ""} A value outside the table should be flagged, not mapped to a plausible neighbour.`
+          `'${code}' is not in the ConceptMap for table ${table}${s ? ` (${s.name})` : ""}. v2.5.1 status: ${v251Status}.${s ? ` Server codes: ${s.map.map((x) => x.code).join(", ")}.` : ""} A value outside the table should be flagged, not mapped to a plausible neighbour.`
         );
       }
       const row = div?.rows.find((r) => r.code === (hit?.code ?? code));
       return ok({
         table,
         code,
-        v251: v251 ? { status: v251.status, ...(v251.entry ? { display: v251.entry.display } : {}), ...(v251.entry?.reason ? { reason: v251.entry.reason } : {}) } : null,
+        v251: v251 ? { status: v251Status, ...(v251.entry ? { display: v251.entry.display } : {}), ...(v251.entry?.reason ? { reason: v251.entry.reason } : {}) } : null,
         ...(source !== "ig" ? { server: hit ? { name: s.name, target: s.target, ...hit } : null } : {}),
         ...(source !== "server" ? { ig: igHits.length ? igHits : null } : {}),
         ...(row && source === "both" ? { comparison: row.status } : {}),
