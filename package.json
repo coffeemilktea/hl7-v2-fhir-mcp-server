@@ -1,17 +1,27 @@
 {
   "name": "hl7-v2-fhir-mcp-server",
-  "version": "1.0.0",
-  "description": "Model Context Protocol server for the HL7 v2.5.1 to FHIR R4 crossing — field, datatype and code-value mappings, plus whole-message conversion of ORM, ADT and ORU into a FHIR transaction Bundle, with a warning for every value it cannot map faithfully.",
+  "version": "2.0.0",
+  "description": "Model Context Protocol server for the HL7 v2.5.1 → FHIR R4 crossing: field, datatype and code mappings (curated, plus the official HL7 v2-to-FHIR IG as reference data) and whole-message conversion of ADT, ORM, OMI/OML, ORU, SIU and MDM into a FHIR transaction Bundle, with a warning for every value it cannot map faithfully.",
   "type": "module",
-  "main": "server.js",
+  "main": "src/server.js",
   "bin": {
-    "hl7-v2-fhir-mcp-server": "server.js"
+    "hl7-v2-fhir-mcp-server": "bin/cli.js"
   },
   "files": [
-    "server.js"
+    "bin/",
+    "src/",
+    "data/",
+    "server.js",
+    "README.md",
+    "NOTICE",
+    "LICENSE",
+    "CHANGES.md"
   ],
   "scripts": {
-    "start": "node server.js"
+    "start": "node bin/cli.js --http",
+    "start:stdio": "node bin/cli.js",
+    "test": "node --test --test-reporter=spec test/",
+    "import-ig": "node scripts/import-ig.mjs"
   },
   "keywords": [
     "mcp",
@@ -23,20 +33,29 @@
     "healthcare",
     "interoperability",
     "v2-to-fhir",
-    "radiology"
+    "radiology",
+    "siu",
+    "mdm",
+    "scheduling",
+    "documents"
   ],
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/coffeemilktea/hl7-v2-fhir-mcp-server.git"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.0",
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "cors": "^2.8.5",
-    "express": "^4.21.2",
-    "zod": "^3.24.1"
+    "express": "^5.2.1",
+    "hl7v2-core": "file:../hl7-v2-mcp-server/core",
+    "zod": "^3.25.76"
+  },
+  "exports": {
+    ".": "./src/server.js",
+    "./convert": "./src/convert/messages.js"
   }
 }
