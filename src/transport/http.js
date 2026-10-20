@@ -112,9 +112,15 @@ export function createApp(cfg) {
   timer.unref();
 
   const notFound = (res) => rpcError(res, 404, -32001, "Session not found or expired. Re-initialize with POST /mcp.");
+  /** Refresh a live session; a session already past its idle limit is closed, not revived. */
   const touch = (id) => {
     const s = sessions.get(id);
-    if (s) s.lastSeen = Date.now();
+    if (!s) return undefined;
+    if (Date.now() - s.lastSeen > cfg.sessionIdleMs) {
+      closeSession(id);
+      return undefined;
+    }
+    s.lastSeen = Date.now();
     return s;
   };
 

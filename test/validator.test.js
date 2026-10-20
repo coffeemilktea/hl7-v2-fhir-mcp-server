@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { execFileSync, spawnSync } from "child_process";
+import { spawnSync } from "child_process";
 import { convert } from "../src/convert/messages.js";
 import * as F from "./fixtures.js";
 
@@ -28,13 +28,26 @@ test("converted bundles pass the HL7 FHIR R4 validator with 0 errors", { skip, t
     return f;
   });
   const out = path.join(dir, "validation.json");
-  execFileSync("java", ["-jar", jar, ...files, "-version", "4.0.1", "-tx", "n/a", "-output", out], { stdio: "ignore", timeout: 590_000 });
+  // Capture the validator's console output: a failed package download from packages.fhir.org or a
+  // bad jar exits non-zero without writing `out`, and the log is the only clue to what went wrong.
+  const run = spawnSync("java", ["-jar", jar, ...files, "-version", "4.0.1", "-tx", "n/a", "-output", out], {
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+    timeout: 590_000,
+  });
+  const log = () => `${run.stdout ?? ""}${run.stderr ?? ""}`.trim().split("\n").slice(-40).join("\n");
+  assert.ok(!run.error, `could not run the validator: ${run.error?.message}\n${log()}`);
+  assert.ok(run.status === 0 && fs.existsSync(out), `validator exited with ${run.status ?? run.signal} and wrote no report:\n${log()}`);
   const result = JSON.parse(fs.readFileSync(out, "utf8"));
   const outcomes = result.entry ? result.entry.map((e) => e.resource) : [result];
+  assert.equal(outcomes.length, files.length, "one OperationOutcome per bundle");
   const errors = [];
   outcomes.forEach((o, i) => {
+    // Name each issue by the file the validator reports, not by position in the output.
+    const file = o.extension?.find((x) => x.url === "http://hl7.org/fhir/StructureDefinition/operationoutcome-file")?.valueString;
+    const name = file ? path.basename(file, ".json") : FIXTURES[i];
     for (const iss of o.issue ?? []) {
-      if (iss.severity === "error" || iss.severity === "fatal") errors.push(`${FIXTURES[i]}: ${iss.expression?.[0] ?? ""} ${iss.details?.text ?? ""}`);
+      if (iss.severity === "error" || iss.severity === "fatal") errors.push(`${name}: ${iss.expression?.[0] ?? ""} ${iss.details?.text ?? ""}`);
     }
   });
   assert.deepEqual(errors, []);

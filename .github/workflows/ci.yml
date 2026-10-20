@@ -8,24 +8,39 @@ on:
 permissions:
   contents: read
 
+env:
+  # hl7v2-core is a file: dependency on the companion repo (../hl7-v2-mcp-server/core) until it
+  # is published to npm. Pin the commit so a push to hl7-v2-mcp-server cannot break this repo's
+  # CI unannounced; bump it deliberately (and re-run npm install so package-lock.json follows).
+  # The repo is public, so the default GITHUB_TOKEN is enough to check it out.
+  HL7V2_CORE_REF: 974b4b8b8e21008f5519bbcd6616c1a14e99c442
+  FHIR_VALIDATOR_VERSION: 7.0.2
+  FHIR_VALIDATOR_SHA256: e3e50f06b806437821b7aef8189a1b790415cb96c5036e0812ed62981452b377
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
+      fail-fast: false
       matrix:
-        node: [20, 22, 24]
+        # 20 is end-of-life (2026-04-30) but stays while package.json says engines >=20.
+        # 26 becomes LTS on 2026-10-28.
+        node: [20, 22, 24, 26]
     steps:
-      # hl7v2-core is a file: dependency on the companion repo until it is published to npm.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: hl7-v2-fhir-mcp-server
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           repository: coffeemilktea/hl7-v2-mcp-server
+          ref: ${{ env.HL7V2_CORE_REF }}
           path: hl7-v2-mcp-server
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: hl7-v2-fhir-mcp-server/package-lock.json
       - run: npm ci
         working-directory: hl7-v2-fhir-mcp-server
       - run: npm test
@@ -35,26 +50,49 @@ jobs:
 
   fhir-validator:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: hl7-v2-fhir-mcp-server
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           repository: coffeemilktea/hl7-v2-mcp-server
+          ref: ${{ env.HL7V2_CORE_REF }}
           path: hl7-v2-mcp-server
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
-      - uses: actions/setup-java@v4
+          node-version: 24
+          cache: npm
+          cache-dependency-path: hl7-v2-fhir-mcp-server/package-lock.json
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
-      - name: Download the HL7 FHIR validator
-        run: curl -fsSL -o "$RUNNER_TEMP/validator_cli.jar" https://github.com/hapifhir/org.hl7.fhir.core/releases/latest/download/validator_cli.jar
+      # The jar (~200 MB) and the FHIR packages it loads (~330 MB from packages.fhir.org:
+      # hl7.fhir.r4.core 4.0.1, terminology, extensions) are fetched once per validator version.
+      - name: Cache the FHIR validator and its packages
+        id: validator-cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cache/fhir-validator
+            ~/.fhir/packages
+          key: fhir-validator-${{ env.FHIR_VALIDATOR_VERSION }}-r4-4.0.1
+      - name: Download the HL7 FHIR validator ${{ env.FHIR_VALIDATOR_VERSION }}
+        if: steps.validator-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.cache/fhir-validator
+          curl -fsSL --retry 5 --retry-all-errors --retry-delay 5 \
+            -o ~/.cache/fhir-validator/validator_cli.jar \
+            "https://github.com/hapifhir/org.hl7.fhir.core/releases/download/${FHIR_VALIDATOR_VERSION}/validator_cli.jar"
+      - name: Verify the validator checksum
+        run: echo "${FHIR_VALIDATOR_SHA256}  $HOME/.cache/fhir-validator/validator_cli.jar" | sha256sum -c -
       - run: npm ci
         working-directory: hl7-v2-fhir-mcp-server
-      - run: node --test test/validator.test.js
+      # The checksum step above guarantees the jar exists, so this test cannot silently skip here.
+      - name: Validate converted bundles (R4 4.0.1, no terminology server)
         working-directory: hl7-v2-fhir-mcp-server
-        env:
-          FHIR_VALIDATOR_JAR: ${{ runner.temp }}/validator_cli.jar
+        run: |
+          export FHIR_VALIDATOR_JAR="$HOME/.cache/fhir-validator/validator_cli.jar"
+          node --test --test-force-exit --test-reporter=spec test/validator.test.js

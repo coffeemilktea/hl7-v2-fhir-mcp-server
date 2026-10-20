@@ -36,7 +36,7 @@ function start(overrides = {}) {
   });
 }
 
-describe("HTTP transport (loopback, no key)", () => {
+describe("HTTP transport (loopback, no key)", { timeout: 30_000 }, () => {
   let s;
   before(async () => (s = await start()));
   after(async () => s.stop());
@@ -48,14 +48,17 @@ describe("HTTP transport (loopback, no key)", () => {
   test("full MCP session over Streamable HTTP", async () => {
     const client = new Client({ name: "t", version: "1" });
     const transport = new StreamableHTTPClientTransport(new URL(`${s.base}/mcp`));
-    await client.connect(transport);
-    const { tools } = await client.listTools();
-    assert.equal(tools.length, 10);
-    const r = await client.callTool({ name: "get_field_mapping", arguments: { segment: "PID", field: 3 } });
-    assert.equal(r.structuredContent.v251.dataType, "CX");
-    assert.equal(s.sessions.size, 1);
-    await transport.terminateSession();
-    await client.close();
+    try {
+      await client.connect(transport);
+      const { tools } = await client.listTools();
+      assert.equal(tools.length, 10);
+      const r = await client.callTool({ name: "get_field_mapping", arguments: { segment: "PID", field: 3 } });
+      assert.equal(r.structuredContent.v251.dataType, "CX");
+      assert.equal(s.sessions.size, 1);
+      await transport.terminateSession();
+    } finally {
+      await client.close();
+    }
     assert.equal(s.sessions.size, 0);
   });
   test("DNS rebinding: foreign Host header is rejected", async () => {
@@ -83,7 +86,7 @@ describe("HTTP transport (loopback, no key)", () => {
   });
 });
 
-describe("HTTP transport limits and auth", () => {
+describe("HTTP transport limits and auth", { timeout: 30_000 }, () => {
   test("refuses a non-loopback bind without an API key", () => {
     assert.throws(() => createApp({ ...configFromEnv({}), host: "0.0.0.0" }), /Refusing/);
   });
@@ -112,7 +115,8 @@ describe("HTTP transport limits and auth", () => {
     }
   });
   test("idle sessions expire and the session cap applies", async () => {
-    const s = await start({ sessionIdleMs: 1000, maxSessions: 1 });
+    // Idle 300 ms but the sweep timer only runs every 1 s: expiry must not depend on the sweep.
+    const s = await start({ sessionIdleMs: 300, maxSessions: 1 });
     try {
       let r = await fetch(`${s.base}/mcp`, { method: "POST", headers: HEADERS, body: JSON.stringify(INIT) });
       assert.equal(r.status, 200);
@@ -120,7 +124,7 @@ describe("HTTP transport limits and auth", () => {
       await r.text();
       r = await fetch(`${s.base}/mcp`, { method: "POST", headers: HEADERS, body: JSON.stringify(INIT) });
       assert.equal(r.status, 503);
-      await new Promise((res) => setTimeout(res, 2200));
+      await new Promise((res) => setTimeout(res, 600));
       r = await fetch(`${s.base}/mcp`, { method: "POST", headers: { ...HEADERS, "mcp-session-id": sid }, body: JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/list" }) });
       assert.equal(r.status, 404);
       assert.equal(s.sessions.size, 0);
