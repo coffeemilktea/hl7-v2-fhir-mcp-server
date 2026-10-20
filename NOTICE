@@ -1,0 +1,25 @@
+hl7-v2-fhir-mcp-server
+Copyright (c) coffeemilktea. Code licensed under the MIT License (see LICENSE).
+
+This package redistributes or depends on the following third-party material.
+
+1. HL7 Version 2 to FHIR Implementation Guide (hl7.fhir.uv.v2mappings 1.0.0, STU1)
+   Source spreadsheets from https://github.com/HL7/v2-to-fhir
+   at commit 873b331b3890c8bc5d62ef9b4dabb41801aac70d (2025-10-07),
+   converted to JSON in data/ig/ by scripts/import-ig.mjs.
+   - The repository is licensed under the Apache License 2.0 (its LICENSE file).
+   - The IG package declares CC0-1.0 (sushi-config.yaml); HL7 publishes FHIR IG content under CC0.
+   The data is reproduced as published; the server adds v2.5.1 flags at runtime and does not
+   alter the rows. data/ig/meta.json records the source, commit and licences.
+
+2. hl7v2-core (HL7 v2.5.1 definitions and parser), from
+   https://github.com/coffeemilktea/hl7-v2-mcp-server/tree/main/core.
+   Its own NOTICE lists its sources: HAPI hapi-structures-v251 (MPL-1.1 / GPL),
+   HL7 Terminology (THO, CC0) and the FHIR STU3 v2 tables (CC0).
+
+3. FHIR R4 (4.0.1) definitions referenced by the converter (code system and profile URLs) are
+   published by HL7 under CC0. The HL7 FHIR validator used in tests (validator_cli.jar,
+   hapifhir/org.hl7.fhir.core) is Apache-2.0 and is not redistributed.
+
+HL7 and FHIR are registered trademarks of Health Level Seven International. This project is not
+affiliated with or endorsed by HL7 International.

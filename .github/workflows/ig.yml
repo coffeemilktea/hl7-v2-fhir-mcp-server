@@ -1,0 +1,23 @@
+name: IG data
+
+# Monthly: re-import the HL7 v2-to-FHIR IG spreadsheets at the pinned commit and fail if
+# data/ig/ no longer reproduces. To move to a newer IG commit, change COMMIT in
+# scripts/import-ig.mjs, run `npm run import-ig`, review the diff and commit it.
+on:
+  schedule:
+    - cron: "0 6 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/import-ig.mjs
+      - run: git diff --exit-code -- data/ig

@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 22, 24]
+    steps:
+      # hl7v2-core is a file: dependency on the companion repo until it is published to npm.
+      - uses: actions/checkout@v4
+        with:
+          path: hl7-v2-fhir-mcp-server
+      - uses: actions/checkout@v4
+        with:
+          repository: coffeemilktea/hl7-v2-mcp-server
+          path: hl7-v2-mcp-server
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm ci
+        working-directory: hl7-v2-fhir-mcp-server
+      - run: npm test
+        working-directory: hl7-v2-fhir-mcp-server
+      - run: npm pack --dry-run
+        working-directory: hl7-v2-fhir-mcp-server
+
+  fhir-validator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: hl7-v2-fhir-mcp-server
+      - uses: actions/checkout@v4
+        with:
+          repository: coffeemilktea/hl7-v2-mcp-server
+          path: hl7-v2-mcp-server
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Download the HL7 FHIR validator
+        run: curl -fsSL -o "$RUNNER_TEMP/validator_cli.jar" https://github.com/hapifhir/org.hl7.fhir.core/releases/latest/download/validator_cli.jar
+      - run: npm ci
+        working-directory: hl7-v2-fhir-mcp-server
+      - run: node --test test/validator.test.js
+        working-directory: hl7-v2-fhir-mcp-server
+        env:
+          FHIR_VALIDATOR_JAR: ${{ runner.temp }}/validator_cli.jar

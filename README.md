@@ -1,129 +1,154 @@
 # HL7 v2.5.1 → FHIR R4 Mapping MCP Server
 
-A [Model Context Protocol](https://modelcontextprotocol.io) server for the crossing between the two
-standards that actually carry an order end to end. It answers **what does this v2 field become in
-FHIR R4** at field, datatype and code-value level, and it converts whole **ORM, ADT and ORU**
-messages into a FHIR **transaction Bundle** — with a warning for every value it could not map
-faithfully, rather than a plausible guess.
+A [Model Context Protocol](https://modelcontextprotocol.io) server for the HL7 v2.5.1 → FHIR R4
+crossing. It answers *what does this v2 field become in FHIR?* at message, segment, field, data type
+and code level, and converts whole messages into a FHIR R4 transaction Bundle with a warning for
+every value it could not map faithfully.
 
 | | |
 |---|---|
-| **Protocol** | MCP Streamable HTTP |
+| **Transports** | stdio (default) and Streamable HTTP |
 | **Source** | HL7 v2.5.1 |
 | **Target** | FHIR R4 (4.0.1) |
-| **Runtime** | Node.js 18+ |
-| **License** | MIT |
-
-> **What this is not:** a certified conversion engine. The output is a syntactically valid R4
-> transaction Bundle built from one message in isolation — it has no patient index, no identifier
-> registry and no memory of earlier messages. Assigning authorities that carry no universal ID come
-> out as `urn:id:` placeholders, and every one of them is reported in `warnings`. Resolve those
-> against your own registry before anything reaches a shared store.
+| **Runtime** | Node.js 20+ |
+| **License** | MIT (data sources are listed in [NOTICE](NOTICE)) |
 
 > **Companion server:** [hl7-v2-mcp-server](https://github.com/coffeemilktea/hl7-v2-mcp-server)
-> answers *what does this segment mean* against the v2.5.1 standard. This one answers *what does it
-> become in R4*. The default port here is 3001, chosen so both can run at once.
+> answers *what does this segment mean in v2.5.1*. Both servers share its
+> [`hl7v2-core`](https://github.com/coffeemilktea/hl7-v2-mcp-server/tree/main/core) package, so they
+> parse messages the same way and agree on every v2.5.1 field, data type and code.
 
----
+## Two sources, labelled separately
+
+Every mapping tool answers from two places and never mixes them:
+
+- **server**: this server's curated rules. They are what `convert_message` does.
+- **ig**: the rows of the official [HL7 Version 2 to FHIR IG](https://hl7.org/fhir/uv/v2mappings/)
+  (1.0.0 STU1), imported from [HL7/v2-to-fhir](https://github.com/HL7/v2-to-fhir) at a pinned commit.
+
+The IG is written against later v2 versions, so each IG row is checked against v2.5.1. A row that
+names a field or component v2.5.1 doesn't define is flagged `inV251: false` with the reason (461
+of 2,524 segment rows, for example PID-40). Each IG code row carries its v2.5.1 status (`valid`,
+`not-in-2.5.1` or `unverified`).
+
+Where the server's code translations deliberately differ from the IG, `compare_with_ig` says so
+code by code:
+
+| Table | Server → FHIR | IG → FHIR |
+|---|---|---|
+| 0001 | N → `unknown` | N → `other` |
+| 0004 | R, C → `AMB`; B → `IMP`; N, U → no class (warned) | B, C, N, R, U keep the v2-0004 code |
+| 0007 | A, E → `EM`; C → `EL`; L, N → `R`; U → `UR` (v3 ActPriority) | keeps the v2-0007 code |
+| 0085 | I → `registered`; R, S → `preliminary`; U → `final` | no target |
+| 0119 | CA → `revoked`; HD → `on-hold`; XO, XX, SC, SN → `active`; RP → `revoked` | CA, HD → `active`; others no target |
+| 0123 | A → `partial`; R → `preliminary`; Y → `entered-in-error`; Z → `unknown` | R → `partial`; A, Y, Z no target |
+
+The server's reason for each choice is in its per-code note, which `compare_with_ig` returns as
+`serverNote`.
+
+Table 0002 (Marital Status) now matches the IG exactly.
+
+## What's covered
+
+| | v1 | v2 |
+|---|---|---|
+| Message conversions | ADT A01/A04/A08/A31/A40, ORM^O01, ORU^R01 | + **SIU** (S12–S24, S26), **MDM** (T01–T11), **OML^O21**, **OMI^O23** |
+| Curated segment maps | 15 segments, 132 fields | 23 segments, 170 fields |
+| Curated data type maps | 16 | 17 (adds CWE) |
+| Curated ConceptMaps | 13 tables, 130 codes | 13 tables, 137 codes (0002 rebuilt with all 16 v2.5.1 codes) |
+| IG reference data | — | 13 message maps, 75 segment maps, 105 data type maps, 99 ConceptMaps |
+| Tools / resources | 9 / 0 | 10 / 5 |
+| FHIR validator (R4, no tx server) | ORU fails (2 errors) | 13 sample bundles, **0 errors** (run in the test suite) |
 
 ## Quick start
 
+### Claude Code
+
 ```bash
-git clone https://github.com/coffeemilktea/hl7-v2-fhir-mcp-server.git
-cd hl7-v2-fhir-mcp-server
-npm install
-npm start
-# HL7 v2.5.1 → FHIR MCP server listening on http://localhost:3001/mcp
+claude mcp add hl7-fhir -- npx -y hl7-v2-fhir-mcp-server
 ```
 
-### Add to Claude Desktop
-
-Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac) or
-`%APPDATA%\Claude\claude_desktop_config.json` (Windows). The two servers complement each other — run
-both:
+Or add it to the project's `.mcp.json`:
 
 ```json
 {
   "mcpServers": {
-    "hl7-reference": {
-      "type": "http",
-      "url": "http://localhost:3000/mcp"
-    },
-    "hl7-to-fhir": {
-      "type": "http",
-      "url": "http://localhost:3001/mcp"
-    }
+    "hl7-fhir": { "command": "npx", "args": ["-y", "hl7-v2-fhir-mcp-server"] }
   }
 }
 ```
 
-Restart Claude Desktop. The nine tools appear in the tool panel.
-
-### Add to Claude Code
-
-In your project's `.claude/settings.json`:
+### Claude Desktop, Cursor and other stdio clients
 
 ```json
 {
   "mcpServers": {
-    "hl7-to-fhir": {
-      "type": "http",
-      "url": "http://localhost:3001/mcp"
-    }
+    "hl7-fhir": { "command": "npx", "args": ["-y", "hl7-v2-fhir-mcp-server"] }
   }
 }
 ```
 
-### Environment variables
+The Claude Desktop config is at `~/Library/Application Support/Claude/claude_desktop_config.json`
+(Mac) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows).
+
+### Over HTTP
+
+```bash
+npx hl7-v2-fhir-mcp-server --http          # http://localhost:3001/mcp
+# or from a clone: npm install && npm start
+claude mcp add --transport http hl7-fhir http://localhost:3001/mcp
+```
 
 | Variable | Default | Description |
 |---|---|---|
-| `PORT` | `3001` | HTTP port the server listens on |
-| `HOST` | `127.0.0.1` | Bind address. Non-loopback requires `API_KEY`. |
-| `API_KEY` | _(unset)_ | Bearer / X-API-Key secret. Required when `HOST` is not loopback. |
+| `PORT` | `3001` | HTTP port (`--port`) |
+| `HOST` | `127.0.0.1` | Bind address (`--host`). A non-loopback address requires `API_KEY`. |
+| `API_KEY` / `MCP_API_KEY` | _(unset)_ | Clients send `Authorization: Bearer <key>` or `X-API-Key`. Compared in constant time. |
+| `ALLOWED_HOSTS` | _(loopback)_ | Extra `Host` header names to accept (DNS-rebinding protection). |
+| `ALLOWED_ORIGINS` | _(none)_ | Browser origins allowed through CORS. No CORS headers are sent by default. |
+| `SESSION_IDLE_MS` | `1800000` | Idle sessions are closed after this many milliseconds (30 minutes). |
+| `MAX_SESSIONS` | `100` | Cap on concurrent sessions. |
+| `MAX_BODY` | `4mb` | Request body limit. |
+| `HL7_MCP_MAX_OUTPUT_CHARS` | `60000` | Larger tool results return an error that explains how to narrow the request. |
 
-A health check is served at `/health`.
-
----
+`/health` returns the server name and version. `node server.js` still starts the HTTP server on
+port 3001, as it did in v1.
 
 ## Tools
 
-Nine tools: six that explain the mapping, three that perform it.
+All tools are read-only, return `structuredContent` matching a published output schema, and accept
+lenient input (`"25"` or `25`; table `2` or `0002`; `siu_s12`, `SIU^S12`).
 
-| Tool | Parameters | What it does |
-|---|---|---|
-| `list_message_mappings` | — | Every message type the server converts, the FHIR resources each produces, and how many documented pitfalls it carries. |
-| `get_message_mapping` | `messageType` | The full segment-to-resource plan for one message type, including the pitfalls that make that message different from its neighbours. |
-| `get_segment_mapping` | `segment` | Field-by-field FHIR targets for one segment — PID, PV1, ORC, OBR, OBX, MRG, SPM, NTE, AL1, DG1, NK1, PD1, EVN, MSH, ZDS. |
-| `get_field_mapping` | `segment`, `field` | One field, e.g. OBR-25 or PID-5, with the FHIR element it feeds and the caveat attached to it. |
-| `get_datatype_mapping` | `datatype` | Component-level mapping for a v2 datatype — XPN, XAD, CX, XTN, CE, TS, XCN, HD, PL, EI, CQ, SN and the primitives. |
-| `lookup_concept_map` | `table`, `code?` | Translate a v2 table value to its FHIR code, or list a whole table. Tables 0001, 0002, 0004, 0007, 0038, 0078, 0085, 0119, 0123, 0125, 0136, 0203, 0396. |
-| `which_v2_fields_feed` | `resourceType` | Reverse lookup. Name a FHIR resource and get every v2 field that lands in it — the question you actually have when a FHIR element is empty and you need to know which segment failed you. |
-| `convert_datetime` | `value` | HL7 TS to FHIR date/dateTime, preserving the source precision instead of padding it, and flagging a time sent with no timezone offset. |
-| `convert_message` | `message`, `include?` | A whole ORM, ADT or ORU message to a FHIR R4 transaction Bundle, plus the warnings and notes the conversion generated. Ask for the bundle, the summary, or both. |
+| Tool | What it does |
+|---|---|
+| `list_message_mappings` | Message types the server converts (and the triggers each covers), plus the IG's message maps. |
+| `get_message_mapping` | Segment-to-resource plan and pitfalls for one message type; the IG message map alongside. `SIU^S13` resolves to the `SIU^S12` plan. |
+| `get_segment_mapping` | Field-by-field targets for a segment: the server's rules and the IG rows (paginated, flagged against v2.5.1). |
+| `get_field_mapping` | One field: its v2.5.1 definition, the server's rule and the IG rows. |
+| `get_datatype_mapping` | Component mapping for a data type. `igMap` picks one IG map (CWE has 14). |
+| `lookup_concept_map` | Translate a table value: server target, IG target, whether they differ, and the code's v2.5.1 status. |
+| `compare_with_ig` | **New.** Every place the server's ConceptMaps differ from the IG, as a summary or code by code. |
+| `which_v2_fields_feed` | Reverse lookup from a FHIR resource type. Matches whole names (`Observation` no longer matches `ObservationDefinition`). |
+| `convert_datetime` | HL7 TS → FHIR date/dateTime, keeping the source precision and flagging a missing offset. |
+| `convert_message` | A whole message → FHIR R4 transaction Bundle, with warnings and notes. `include=summary` returns counts and warnings only. |
 
----
+Resources: `fhirmap://segment/{code}`, `fhirmap://datatype/{code}`, `fhirmap://conceptmap/{table}`,
+`fhirmap://message/{type}`, `fhirmap://about`.
 
 ## What each message becomes
 
-Conversion is a transaction Bundle. Resources with a usable business identifier get a conditional
-`PUT` so a replayed message updates rather than duplicates; resources without one fall back to
-`POST`, and the missing identifier is reported as a warning.
-
 | Message | Resources emitted | The part that goes wrong |
 |---|---|---|
-| `ORM^O01` | ServiceRequest, Patient, Encounter, Practitioner, Location, Observation, ImagingStudy | One ORM can carry several ORC/OBR pairs — that is **N ServiceRequests**, not one with repeated codes. And OBX inside an ORM is an order-entry answer, not a result: it is emitted with `category=exam` and `basedOn` the request, never `laboratory`. |
-| `ADT^A01` / `A04` | Patient, Encounter, Location chain, Practitioner, Condition, AllergyIntolerance | `Encounter.class` is 1..1 in R4. A PV1-2 of `U` makes a conformant Encounter impossible, so the server emits `UNK` and warns rather than quietly defaulting to ambulatory. |
-| `ADT^A08` | Patient, Encounter, Condition, AllergyIntolerance | A08 is a **snapshot**, but most pipelines treat it as a patch, so a field the sender cleared never clears downstream. A changed MRN in an A08 is an unannounced merge, not an update. |
-| `ADT^A31` | Patient only | Person-level, so there is **no Encounter** — even when the sender includes a PV1. Emitting one anyway, because the A08 converter always does, is the classic A31 bug; the server warns instead. |
-| `ADT^A40` | Patient (survivor) + Patient (retired, `active=false`) | PID survives, MRG-1 is retired with `link.type=replaced-by`. The direction is reversible and reversing it is **silent** — the wrong chart is retired and the bundle still validates. |
-| `ORU^R01` | DiagnosticReport, Observation, Patient, Encounter, Specimen, Practitioner, ImagingStudy | A radiology narrative arrives as dozens of repeating TX rows. They are **one report**: the server joins consecutive narrative OBX rows sharing a code into a single Observation, in line order, and repeats the text in `DiagnosticReport.conclusion`. |
+| `ADT^A01` / `A04` | Patient, Encounter, Location chain, Practitioner, Condition, AllergyIntolerance | `Encounter.class` is 1..1 in R4. A PV1-2 of `U` makes a conformant Encounter impossible, so the server emits `UNK` and warns rather than defaulting to ambulatory. |
+| `ADT^A08` | Patient, Encounter, Condition, AllergyIntolerance | A08 is a **snapshot**, but most pipelines treat it as a patch, so a field the sender cleared never clears downstream. |
+| `ADT^A31` | Patient only | Person-level, so **no Encounter**, even when the sender includes a PV1. |
+| `ADT^A40` | Patient (survivor) + Patient (retired, `active=false`) | PID survives, MRG-1 is retired with `link.type=replaced-by`. Reversing it is silent. |
+| `ORM^O01`, `OML^O21`, `OMI^O23` | ServiceRequest, Patient, Encounter, Practitioner, Observation, Specimen (SPM), ImagingStudy (ZDS or IPC) | One message can carry several orders: N ServiceRequests. OBX in an order is supporting information (`category=exam`, `ServiceRequest.supportingInfo`), never a result. TQ1-9 priority uses the IG map for table 0485. OMI's IPC-3 becomes the ImagingStudy UID and IPC-1 an `ACSN` identifier. |
+| `ORU^R01` | DiagnosticReport, Observation, Patient, Encounter, Specimen, Practitioner, ImagingStudy | Repeating narrative TX rows are one report. Vital-sign LOINCs get `category=vital-signs`, as the R4 vital-signs profiles require. |
+| `SIU^S12`…`S26` | Appointment, Patient, Encounter, Practitioner, Location | `start`/`end` are instants, so a time without an offset can't be used. SCH-25 goes through the IG map for table 0278 (mixed case in v2.5.1: `Booked`, `Noshow`). v2.5.1 has no participant status, which R4 requires: it is data-absent unless you pass `participantStatus`. |
+| `MDM^T01`…`T11` | DocumentReference, Patient, Encounter, Practitioner, ServiceRequest | TXA-12 is the document's identity across updates. TXA-19 (table 0273) sets `status`. TXA-17 has no published map to `docStatus`, so it is reported, not guessed. T06 and T10 set `relatesTo` (appends/replaces) from TXA-13. |
 
-### Where the two status fields go
-
-The most common conversion defect in an ORU is copying one status onto the other. They come from
-different fields, use different tables, and legitimately differ — a final report can contain a
-corrected line.
+### Where the status fields go
 
 | Source | Table | FHIR element |
 |---|---|---|
@@ -131,114 +156,70 @@ corrected line.
 | OBX-11 | 0085 | `Observation.status` |
 | ORC-5 | 0038 | `ServiceRequest.status` |
 | ORC-1 | 0119 | (create / update / cancel — a verb, not a state) |
-
----
+| SCH-25 | 0278 | `Appointment.status` (IG ConceptMap) |
+| TXA-19 | 0273 | `DocumentReference.status` (IG) |
 
 ## Rules the converter holds to
 
-Every one of these is a place where a conversion can look successful and be wrong. The server's
-position on each is fixed, and departures are reported rather than absorbed.
-
 | Rule | Why |
 |---|---|
-| **No invented systems** | An assigning authority with no universal ID becomes `urn:id:<namespace>` and a warning — never a fabricated `http://` URI. Two hospitals' local codes sharing one system URI silently merges two code systems. |
-| **Precision is preserved** | `19800115` is a `date`; `202501` stays `2025-01`. Padding a partial timestamp to midnight invents a time the sender never asserted. |
-| **Timezones are never assumed** | A TS with a time and no offset is converted without one and flagged. Applying the receiver's locale is what shifts admissions across midnight between sites. |
-| **Out-of-table codes fail loudly** | A PID-8 that is not in table 0001 leaves `Patient.gender` absent rather than mapping to the nearest plausible neighbour. |
-| **Idempotent output** | `fullUrl`s are derived from MSH-10 and the resource's logical key, so converting the same message twice produces byte-identical bundles — diffable in a test suite. |
-| **Escapes are reversed** | `\F\`, `\S\`, `\T\`, `\R\`, `\E\`, `\X..\` and `\.br\` are decoded before the text reaches FHIR. A FHIR string containing `\.br\` is a conversion that stopped halfway. |
-| **OBX-2 decides value[x]** | NM becomes `valueQuantity`, SN becomes Quantity, Range or Ratio depending on its separator, CE becomes `valueCodeableConcept`. An NM that is not numeric falls back to `valueString` with a warning instead of being dropped. |
-| **ED and RP are not values** | Encapsulated data and reference pointers belong in `presentedForm` or an ImagingStudy. The raw value is kept as a string for review and flagged, not filed as a result. |
-
----
+| **No invented systems** | An assigning authority with no universal ID becomes `urn:id:<namespace>` and a warning, never a fabricated `http://` URI. `HL7nnnn` coding systems resolve to the THO `v2-nnnn` code system; user-defined tables with no THO code system (e.g. 0112) get no system and a warning. |
+| **No invented codes** | A value outside its table is warned about and left out. Where R4 requires an element v2.5.1 can't supply (Appointment.participant.status, DocumentReference.status), the server emits a `data-absent-reason` extension and warns. |
+| **Precision is preserved** | `19800115` is a `date`; `202501` stays `2025-01`. |
+| **Timezones are never assumed** | A TS with a time and no offset is converted without one and flagged; it is never used for an `instant`. |
+| **Idempotent output** | `fullUrl`s come from MSH-10 and the resource's logical key, so the same message always gives the same bundle. |
+| **Escapes are reversed** | HL7 escapes are decoded by the shared `hl7v2-core` parser. |
+| **OBX-2 decides value[x]** | NM → `valueQuantity`, SN → Quantity/Range/Ratio, CE → `valueCodeableConcept`. CWE and IS in OBX-2 are converted but labelled as non-v2.5.1 value types. |
 
 ## Example prompts
 
-Once connected, you can ask Claude questions like:
-
 ```text
-# Field-level mapping
-"Where does OBR-25 go in FHIR?"
-  → get_field_mapping(segment="OBR", field=25)
-
-# Reverse lookup — the question you have at 2am
-"DiagnosticReport.effectiveDateTime is empty. Which v2 field feeds it?"
-  → which_v2_fields_feed(resourceType="DiagnosticReport")
-
-# Code translation
-"What does patient class 'B' become in Encounter.class?"
-  → lookup_concept_map(table="0004", code="B")
-
-# Whole-message conversion
-"Convert this ORU to FHIR and tell me what didn't map cleanly."
-  → convert_message(message="MSH|^~\&|RIS|HOSP|...", include="both")
-
-# Just the diagnosis, not the payload
-"Will this ADT^A08 convert cleanly?"
-  → convert_message(message="...", include="summary")
-
-# Merge safety
-"Which patient does this A40 retire?"
-  → get_message_mapping(messageType="ADT^A40")
-    convert_message(...)   survivor keeps PID-3, MRG-1 goes active=false with replaced-by
-
-# Datatype detail
-"How do I get an email address out of an XTN?"
-  → get_datatype_mapping(datatype="XTN")
-
-# Timestamps
-"Is 20250901143000 safe to send as a FHIR instant?"
-  → convert_datetime(value="20250901143000")
+"Where does OBR-25 go in FHIR, and does the IG agree?"        → get_field_mapping, lookup_concept_map
+"DiagnosticReport.effectiveDateTime is empty. Which field?"    → which_v2_fields_feed
+"Where does this server differ from the HL7 v2-to-FHIR IG?"   → compare_with_ig
+"Convert this SIU^S12 to an Appointment."                      → convert_message
+"Will this MDM^T02 convert cleanly?"                           → convert_message(include="summary")
+"How does CWE map to a CodeableConcept in the IG?"             → get_datatype_mapping(datatype="CWE", igMap="CodeableConcept")
 ```
 
----
-
----
-
-## ⚠️ Remote deploy warning (lab / synthetic only)
-
-**Do not expose this server on the public internet without authentication.**
-
-Defaults are intentional for local use:
-
-| Variable | Default | Meaning |
-| --- | --- | --- |
-| `HOST` | `127.0.0.1` | Bind loopback only |
-| `PORT` | see above | HTTP port |
-| `API_KEY` (or `MCP_API_KEY`) | _(unset)_ | Optional on loopback; **required** for any non-loopback bind |
-
-If you set `HOST=0.0.0.0` (or any non-loopback address) and omit `API_KEY`, the process
-**refuses to start**. When `API_KEY` is set, every route except `/health` requires
-`Authorization: Bearer <API_KEY>` or `X-API-Key: <API_KEY>`.
-
-These servers hold HL7 reference/mapping logic and will happily accept whatever message
-you POST — treat remote instances as **lab or synthetic-data playgrounds**, never as a
-place to send real PHI.
-
-### Deploying remotely (only with auth)
-
-Railway, Render, and similar hosts typically bind `0.0.0.0`. That is fine **only** if you
-also set a strong `API_KEY` (and prefer putting the service behind your own gateway).
-
-**Do not** recommend or configure a wide-open Railway/Render deploy with open CORS and no
-auth — that was an earlier mistake in this README.
+## Development
 
 ```bash
-# Example: remote bind with auth
-HOST=0.0.0.0 API_KEY="$(openssl rand -hex 32)" PORT=3000 npm start
-# Clients: Authorization: Bearer <that key>
+# hl7v2-core lives in the companion repo; clone both side by side until it is published
+git clone https://github.com/coffeemilktea/hl7-v2-mcp-server
+git clone https://github.com/coffeemilktea/hl7-v2-fhir-mcp-server
+cd hl7-v2-fhir-mcp-server && npm install
+npm test                                            # unit, MCP, HTTP security, stdio
+FHIR_VALIDATOR_JAR=/path/to/validator_cli.jar npm test   # also runs the HL7 FHIR validator (needs Java 17+)
+npm run import-ig                                   # rebuild data/ig from HL7/v2-to-fhir at the pinned commit
 ```
+
+The layout:
+
+- `src/maps.js`: the curated mapping rules.
+- `src/ig.js`, `data/ig/`: the IG reference data and the v2.5.1 checks on it.
+- `src/convert/`: the converters (`messages`, `orders`, `scheduling`, `documents`, `segments`, `datatypes`, `bundle`).
+- `src/tools/`, `src/resources.js`, `src/server.js`: the MCP surface.
+- `src/transport/`, `bin/cli.js`: stdio and HTTP.
+
+## Remote deployment (synthetic or de-identified data only)
+
+Don't expose the server without authentication. If you bind a non-loopback `HOST` without an
+`API_KEY`, the server refuses to start.
+
+```bash
+HOST=0.0.0.0 API_KEY="$(openssl rand -hex 32)" ALLOWED_HOSTS=fhir.example.org npx hl7-v2-fhir-mcp-server --http
+```
+
+The server accepts whatever message you POST. Treat remote instances as lab or synthetic-data
+playgrounds, never as a place to send real PHI.
 
 ## Related
 
-- [hl7-v2-mcp-server](https://github.com/coffeemilktea/hl7-v2-mcp-server) — the companion HL7 v2.5.1
-  reference server
-- [coffeemilktea.github.io](https://coffeemilktea.github.io/) — browser-based healthcare IT tools,
-  including a browser-side HL7 v2 ↔ FHIR converter
-- [hl7-dicom-tools](https://github.com/coffeemilktea/hl7-dicom-tools) — the DICOM and HL7 v2 browser tools
+- [hl7-v2-mcp-server](https://github.com/coffeemilktea/hl7-v2-mcp-server): the companion HL7 v2.5.1 reference server
+- [coffeemilktea.github.io](https://coffeemilktea.github.io/): browser-based healthcare IT tools
+- [hl7-dicom-tools](https://github.com/coffeemilktea/hl7-dicom-tools): DICOM and HL7 v2 browser tools
 
-Mappings follow FHIR R4 (4.0.1) and the HL7 v2-to-FHIR conventions. HL7® and FHIR® are registered
-trademarks of Health Level Seven International; this project is not affiliated with or endorsed by
-HL7 International.
-
-MIT licensed — see [LICENSE](LICENSE).
+HL7® and FHIR® are registered trademarks of Health Level Seven International. This project isn't
+affiliated with or endorsed by HL7 International. MIT licensed; see [LICENSE](LICENSE) and
+[NOTICE](NOTICE).
