@@ -1,7 +1,7 @@
 /** Segment → FHIR resource builders. */
 import { CONCEPT_MAPS, TERM } from "../maps.js";
-import { c, sub, rawComp, reps, unesc, toFhirDate, zonelessTime } from "./util.js";
-import { systemFrom, toCodeableConcept, toIdentifier, toIdentifierEI, toIdentifiersEIP, toHumanName, toAddress, toContactPoint } from "./datatypes.js";
+import { c, sub, rawComp, reps, unesc, toFhirDate, toFhirTime, zonelessTime } from "./util.js";
+import { systemFrom, toCodeableConcept, toCodeableConcepts, toIdentifier, toIdentifierEI, toIdentifiersEIP, toHumanName, toAddress, toContactPoint } from "./datatypes.js";
 import { conditional } from "./bundle.js";
 
 export const GENDER = Object.fromEntries(CONCEPT_MAPS["0001"].map.map((m) => [m.code, m.fhir]));
@@ -36,7 +36,10 @@ export function buildPatient(pid, pd1, ctx, b) {
   if (maritalCode && !MARITAL[maritalCode]) b.warn(`PID-16 '${maritalCode}' is not in HL7 v2.5.1 table 0002; Patient.maritalStatus omitted rather than guessed.`);
   const deathDate = toFhirDate(g(pid.f(29), 1));
   const language = toCodeableConcept(pid.f(15), ctx, b.warn);
-  const birthOrder = g(pid.f(25), 1);
+  // PID-25 birth order (NM) wins over PID-24 multiple birth indicator (ID, table 0136).
+  const birthOrderRaw = g(pid.f(25), 1);
+  const birthOrder = /^\d+$/.test(birthOrderRaw) && +birthOrderRaw > 0 ? +birthOrderRaw : undefined;
+  if (birthOrderRaw && !birthOrder) b.warn(`PID-25 birth order '${birthOrderRaw}' is not a positive whole number; multipleBirthInteger omitted.`);
   const multipleBirth = g(pid.f(24), 1).toUpperCase();
 
   const resource = {
@@ -56,7 +59,7 @@ export function buildPatient(pid, pd1, ctx, b) {
       ? { maritalStatus: { coding: [{ system: MARITAL[maritalCode].system ?? CONCEPT_MAPS["0002"].target, code: MARITAL[maritalCode].fhir }] } }
       : {}),
     ...(birthOrder
-      ? { multipleBirthInteger: Number(birthOrder) }
+      ? { multipleBirthInteger: birthOrder }
       : multipleBirth === "Y" || multipleBirth === "N"
         ? { multipleBirthBoolean: multipleBirth === "Y" }
         : {}),
@@ -85,7 +88,8 @@ export function practitionerRef(xcn, ctx, b) {
   const g = c(ctx);
   const s = sub(ctx);
   const id = g(xcn, 1);
-  const family = g(xcn, 2);
+  // XCN.2 is FN: FN.1 surname (FN.2-5 surname prefixes/parts have no R4 element).
+  const family = s(rawComp(xcn, 2, ctx.compSep), 1);
   if (!id && !family) return undefined;
   const auth = rawComp(xcn, 9, ctx.compSep);
   const { system } = systemFrom(s(auth, 1), s(auth, 2), s(auth, 3));
@@ -221,14 +225,18 @@ export function buildAllergy(al1, patientRef, ctx, b, n) {
   const g = c(ctx);
   const code = toCodeableConcept(al1.f(3), ctx, b.warn);
   if (!code) return;
-  const CATEGORY = { DA: "medication", MA: "medication", MC: "medication", FA: "food", EA: "environment", AA: "biologic", LA: "environment", PA: "environment" };
+  // Table 0127 as in the IG: MA (miscellaneous allergy) and MC (miscellaneous contraindication) have no category.
+  const CATEGORY = { DA: "medication", FA: "food", EA: "environment", AA: "biologic", LA: "environment", PA: "environment" };
   const SEVERITY = { SV: "severe", MO: "moderate", MI: "mild" };
-  const category = CATEGORY[g(al1.f(2), 1).toUpperCase()];
+  const typeCode = g(al1.f(2), 1).toUpperCase();
+  const category = CATEGORY[typeCode];
   const severity = SEVERITY[g(al1.f(4), 1).toUpperCase()];
-  const manifestation = reps(al1.f(5), ctx.repSep).map((r) => toCodeableConcept(r, ctx, b.warn)).filter(Boolean);
+  // AL1-5 is ST (free text) in v2.5.1, repeating: each repetition is one reaction, as text.
+  const manifestation = reps(al1.f(5), ctx.repSep).map((r) => unesc(r, ctx).trim()).filter(Boolean).map((text) => ({ text }));
   const recorded = toFhirDate(g(al1.f(6), 1));
   b.put(`allergy:${n}`, "AllergyIntolerance", {
     clinicalStatus: { coding: [{ system: `${TERM}/allergyintolerance-clinical`, code: "active" }] },
+    ...(typeCode === "MC" ? {} : { type: "allergy" }),
     ...(category ? { category: [category] } : {}),
     code,
     patient: patientRef,
@@ -257,7 +265,8 @@ export function buildCondition(dg1, patientRef, encounter, ctx, b, n) {
     ...(asserter ? { asserter } : {}),
   });
   if (encounter) {
-    const USE = { A: "AD", W: "DD", F: "DD" };
+    // Table 0052: only A (admitting) has a diagnosis-role equivalent (AD); W (working) and F (final) do not, as in the IG.
+    const USE = { A: "AD" };
     const useCode = USE[g(dg1.f(6), 1).toUpperCase()];
     const rank = Number(g(dg1.f(15), 1));
     encounter.resource.diagnosis = encounter.resource.diagnosis ?? [];
@@ -293,7 +302,9 @@ export function buildSpecimen(spm, patientRef, ctx, b, n) {
   const { placer: spmPlacer, filler: spmFiller } = toIdentifiersEIP(spm.f(2), ctx, b.warn);
   const identifier = spmFiller ?? spmPlacer;
   const type = toCodeableConcept(spm.f(4), ctx, b.warn);
-  const collected = toFhirDate(g(spm.f(17), 1));
+  // SPM-17 is DR (range start ^ range end, each a TS): a range end makes it collectedPeriod, as in the IG.
+  const collected = toFhirDate(rawComp(spm.f(17), 1, ctx.compSep));
+  const collectedEnd = toFhirDate(rawComp(spm.f(17), 2, ctx.compSep));
   const received = toFhirDate(g(spm.f(18), 1));
   const site = toCodeableConcept(spm.f(8), ctx, b.warn);
   const role = g(spm.f(11), 1).toUpperCase();
@@ -305,53 +316,79 @@ export function buildSpecimen(spm, patientRef, ctx, b, n) {
     ...(type ? { type } : {}),
     subject: patientRef,
     ...(received ? { receivedTime: received } : {}),
-    ...(collected || site
-      ? { collection: { ...(collected ? { collectedDateTime: collected } : {}), ...(site ? { bodySite: site } : {}) } }
+    ...(collected || collectedEnd || site
+      ? {
+          collection: {
+            ...(collectedEnd
+              ? { collectedPeriod: { ...(collected ? { start: collected } : {}), end: collectedEnd } }
+              : collected ? { collectedDateTime: collected } : {}),
+            ...(site ? { bodySite: site } : {}),
+          },
+        }
       : {}),
   }, conditional("Specimen", identifier));
 }
 
-/** OBX-5 → the right Observation.value[x], chosen by OBX-2. */
-export function observationValue(valueType, raw, units, ctx, b, location) {
+/** HL7 NM: optional sign, digits, optional decimal point; no exponent. */
+const NM_RE = /^[+-]?(\d+\.?\d*|\.\d+)$/;
+const nm = (s) => (NM_RE.test(String(s ?? "").trim()) ? Number(String(s).trim()) : undefined);
+/** SN-1 comparators that FHIR Quantity.comparator can carry. */
+const COMPARATORS = new Set(["<", "<=", ">=", ">"]);
+
+/**
+ * OBX-5 → the right Observation.value[x], chosen by OBX-2 (table 0125).
+ * Returns undefined when OBX-5 is empty. Only the first repetition becomes the
+ * value (Observation.value is 0..1); further repetitions are joined for text
+ * types and reported for the others.
+ */
+export function observationValue(valueType, field, units, ctx, b, location) {
   const g = c(ctx);
   const type = (valueType || "").toUpperCase();
+  const values = reps(field, ctx.repSep);
+  if (!values.length) return undefined;
+  if (!type) b.warn(`${location}: OBX-5 is valued but OBX-2 (value type) is empty, which v2.5.1 does not allow; the value was kept as text.`);
+  if (["ST", "TX", "FT"].includes(type) || !type) {
+    return { valueString: values.map((v) => unesc(v, ctx)).join("\n") };
+  }
+  if (values.length > 1) b.warn(`${location}: OBX-5 has ${values.length} repetitions of type ${type}; Observation.value holds one, so only the first was converted.`);
+  const raw = values[0];
+
+  // OBX-6 units (CE). Quantity.code needs a system (qty-3), so a unit without a coding system stays unit text only.
   const unitCc = toCodeableConcept(units, ctx, () => {});
-  const unitCode = unitCc?.coding?.[0]?.code;
-  const unitSystem = unitCc?.coding?.[0]?.system;
-  const quantity = (value) => ({
-    valueQuantity: {
-      value,
-      ...(unitCode ? { unit: unitCc.coding[0].display || unitCode } : {}),
-      ...(unitSystem ? { system: unitSystem } : {}),
-      ...(unitCode ? { code: unitCode } : {}),
-    },
+  const unitCoding = unitCc?.coding?.find((cd) => cd.system === "http://unitsofmeasure.org") ?? unitCc?.coding?.[0];
+  const unitText = unitCoding?.display || unitCoding?.code || unitCc?.text;
+  const unit = () => ({
+    ...(unitText ? { unit: unitText } : {}),
+    ...(unitCoding?.system && unitCoding.code ? { system: unitCoding.system, code: unitCoding.code } : {}),
   });
+  const quantity = (value) => ({ valueQuantity: { value, ...unit() } });
+  const asString = (why) => {
+    if (why) b.warn(`${location}: ${why}; emitted as valueString so the result is not lost.`);
+    return { valueString: unesc(raw, ctx) };
+  };
 
   switch (type) {
     case "NM": {
-      const n = Number(unesc(raw, ctx));
-      if (!Number.isFinite(n)) {
-        b.warn(`${location}: OBX-2 is NM but OBX-5 '${raw}' is not numeric; emitted as valueString so the result is not lost.`);
-        return { valueString: unesc(raw, ctx) };
-      }
-      return quantity(n);
+      const n = nm(unesc(raw, ctx));
+      return n === undefined ? asString(`OBX-2 is NM but OBX-5 '${unesc(raw, ctx)}' is not a v2 number`) : quantity(n);
     }
     case "SN": {
+      // SN: comparator ^ num1 ^ separator/suffix ^ num2.
       const [cmp, n1, sep, n2] = [1, 2, 3, 4].map((i) => g(raw, i));
-      const a = Number(n1);
-      const bNum = Number(n2);
-      if (sep === "-" && Number.isFinite(a) && Number.isFinite(bNum)) {
-        return { valueRange: { low: { value: a, ...(unitCode ? { unit: unitCode } : {}) }, high: { value: bNum, ...(unitCode ? { unit: unitCode } : {}) } } };
+      const a = nm(n1);
+      const z = nm(n2);
+      if (sep === "-" && a !== undefined && z !== undefined && !cmp) return { valueRange: { low: { value: a, ...unit() }, high: { value: z, ...unit() } } };
+      if ((sep === ":" || sep === "/") && a !== undefined && z !== undefined && !cmp) return { valueRatio: { numerator: { value: a }, denominator: { value: z } } };
+      if (a !== undefined && !sep && !n2 && (!cmp || cmp === "=" || COMPARATORS.has(cmp))) {
+        const q = quantity(a);
+        if (COMPARATORS.has(cmp)) q.valueQuantity.comparator = cmp;
+        return q;
       }
-      if ((sep === ":" || sep === "/") && Number.isFinite(a) && Number.isFinite(bNum)) {
-        return { valueRatio: { numerator: { value: a }, denominator: { value: bNum } } };
-      }
-      if (!Number.isFinite(a)) return { valueString: unesc(raw, ctx) };
-      const q = quantity(a);
-      if (cmp && cmp !== "=") q.valueQuantity.comparator = cmp;
-      return q;
+      // "<>", "+" suffixes (e.g. 2^+), "." separators and anything malformed have no exact FHIR form.
+      return { valueString: [cmp, n1, sep, n2].join("").trim() || unesc(raw, ctx) };
     }
     case "CE":
+    case "CF":
     case "CWE":
     case "IS":
     case "ID": {
@@ -361,15 +398,16 @@ export function observationValue(valueType, raw, units, ctx, b, location) {
     case "DT":
     case "TS":
     case "DTM": {
-      const d = toFhirDate(g(raw, 1));
-      return d ? { valueDateTime: d } : { valueString: unesc(raw, ctx) };
+      const d = toFhirDate(rawComp(raw, 1, ctx.compSep));
+      return d ? { valueDateTime: d } : asString(`OBX-5 '${unesc(raw, ctx)}' is not a valid ${type}`);
     }
-    case "TM":
-      return { valueTime: unesc(raw, ctx) };
+    case "TM": {
+      const t = toFhirTime(g(raw, 1));
+      return t ? { valueTime: t } : asString(`OBX-5 '${unesc(raw, ctx)}' is not a valid TM (HHMM[SS[.S...]])`);
+    }
     case "ED":
     case "RP":
-      b.warn(`${location}: OBX-2 is ${type} (encapsulated data / reference pointer). Its content belongs in DiagnosticReport.presentedForm or an ImagingStudy, not Observation.value — the raw value was kept as valueString for review.`);
-      return { valueString: unesc(raw, ctx) };
+      return asString(`OBX-2 is ${type} (encapsulated data / reference pointer). Its content belongs in DiagnosticReport.presentedForm or an ImagingStudy, not Observation.value`);
     default:
       return { valueString: unesc(raw, ctx) };
   }
@@ -397,11 +435,25 @@ export function buildObservation(obx, patientRef, encounter, ctx, b, key, { fall
   const categories = [category, isVitalSign(code) ? "vital-signs" : undefined].filter(Boolean);
   const effective = toFhirDate(g(obx.f(14), 1)) ?? fallbackEffective;
   const issued = toFhirDate(g(obx.f(19), 1));
+  // OBX-8 (IS, repeating, table 0078): the v2.5.1 codes are also v3-ObservationInterpretation codes, except "null" (no range defined).
   const interpretation = reps(obx.f(8), ctx.repSep)
-    .map((flag) => ({ coding: [{ system: `${TERM}/v3-ObservationInterpretation`, code: unesc(flag.trim(), ctx) }] }));
+    .map((flag) => unesc(flag, ctx).trim())
+    .filter((code) => code && code.toLowerCase() !== "null")
+    .map((code) => ({ coding: [{ system: `${TERM}/v3-ObservationInterpretation`, code }] }));
+  // OBX-7 (ST): "low-high", "<high", ">low"; anything else stays text.
   const range = unesc(obx.f(7), ctx).trim();
-  const rangeMatch = /^(-?\d+(?:\.\d+)?)\s*-\s*(-?\d+(?:\.\d+)?)$/.exec(range);
-  const method = toCodeableConcept(obx.f(17), ctx, () => {});
+  const num = "([+-]?\\d+(?:\\.\\d+)?)";
+  const between = new RegExp(`^${num}\\s*-\\s*${num}$`).exec(range);
+  const below = new RegExp(`^<=?\\s*${num}$`).exec(range);
+  const above = new RegExp(`^>=?\\s*${num}$`).exec(range);
+  const rangeBounds = between ? { low: { value: +between[1] }, high: { value: +between[2] } }
+    : below ? { high: { value: +below[1] } }
+    : above ? { low: { value: +above[1] } }
+    : {};
+  // OBX-17 repeats in v2.5.1 but Observation.method is 0..1: the first is kept.
+  const methods = toCodeableConcepts(obx.f(17), ctx, () => {});
+  const method = methods[0];
+  if (methods.length > 1) b.warn(`${key}: OBX-17 has ${methods.length} observation methods; Observation.method holds one, so only the first was kept.`);
   const performer = [
     ...reps(obx.f(16), ctx.repSep).map((r) => practitionerRef(r, ctx, b)),
   ].filter(Boolean);
@@ -428,11 +480,7 @@ export function buildObservation(obx, patientRef, encounter, ctx, b, key, { fall
     ...(method ? { method } : {}),
     ...(range
       ? {
-          referenceRange: [
-            rangeMatch
-              ? { low: { value: Number(rangeMatch[1]) }, high: { value: Number(rangeMatch[2]) }, text: range }
-              : { text: range },
-          ],
+          referenceRange: [{ ...rangeBounds, text: range }],
         }
       : {}),
   });
@@ -473,7 +521,10 @@ export function buildServiceRequest(orc, obr, patientRef, encounter, ctx, b, key
   const PRIORITY = { S: "stat", A: "asap", R: "routine", P: "routine", C: "routine", T: "asap" };
   const occurrence = toFhirDate(g(obr?.f(6) ?? "", 1)) ?? toFhirDate(g(timing, 4));
 
-  const reason = [toCodeableConcept(obr?.f(31) ?? "", ctx, () => {}), toCodeableConcept(obr?.f(13) ?? "", ctx, () => {})].filter(Boolean);
+  // OBR-31 reason for study (CE, repeating) → reasonCode; OBR-13 relevant clinical information is ST (free text) → note.
+  const reason = toCodeableConcepts(obr?.f(31) ?? "", ctx, b.warn);
+  const clinicalInfo = unesc(obr?.f(13) ?? "", ctx).trim();
+  if (clinicalInfo) notes = [...(notes ?? []), `Relevant clinical information (OBR-13): ${clinicalInfo}`];
 
   return b.put(key, "ServiceRequest", {
     ...(identifiers.length ? { identifier: identifiers } : {}),
@@ -489,6 +540,21 @@ export function buildServiceRequest(orc, obr, patientRef, encounter, ctx, b, key
     ...(reason.length ? { reasonCode: reason } : {}),
     ...(notes?.length ? { note: [{ text: notes.join("\n") }] } : {}),
   }, conditional("ServiceRequest", placer && identifiers[0]));
+}
+
+/**
+ * NDL (OBR-32..35) → an XCN-shaped string. NDL.1 is CNN carried as
+ * subcomponents: ID & family & given & middle & suffix & prefix & degree &
+ * source table & assigning authority namespace & universal ID & universal ID type.
+ * CNN.1-8 line up with XCN.1-8; CNN.9-11 become the XCN.9 HD.
+ */
+export function ndlToXcn(ndl, ctx) {
+  if (!ctx.subSep || !ctx.compSep) return ndl;
+  const cnn = rawComp(ndl, 1, ctx.compSep).split(ctx.subSep);
+  const parts = cnn.slice(0, 8);
+  while (parts.length < 8) parts.push("");
+  const hd = cnn.slice(8, 11).join(ctx.subSep).replace(new RegExp(`\\${ctx.subSep}+$`), "");
+  return [...parts, hd].join(ctx.compSep);
 }
 
 /** OBR → DiagnosticReport (ORU only). */
@@ -507,9 +573,7 @@ export function buildReport(obr, patientRef, encounter, ctx, b, key, { results, 
   const code = toCodeableConcept(obr.f(4), ctx, b.warn);
   const effective = toFhirDate(g(obr.f(7), 1));
   const issued = toFhirDate(g(obr.f(22), 1));
-  const interpreter = reps(obr.f(32), ctx.repSep)
-    .map((r) => practitionerRef(rawComp(r, 1, ctx.subSep) ? r.split(ctx.subSep).join(ctx.compSep) : r, ctx, b))
-    .filter(Boolean);
+  const interpreter = reps(obr.f(32), ctx.repSep).map((r) => practitionerRef(ndlToXcn(r, ctx), ctx, b)).filter(Boolean);
 
   const identifiers = [];
   if (filler) identifiers.push({ ...filler, type: { coding: [{ system: `${TERM}/v2-0203`, code: "FILL" }] } });

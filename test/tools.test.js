@@ -93,7 +93,7 @@ test("compare_with_ig: summary and per-table rows", async () => {
   const all = await call("compare_with_ig");
   assert.ok(all.structuredContent.tables.find((t) => t.table === "0004").differs >= 5);
   const r = await call("compare_with_ig", { table: "85", status: "differs" });
-  assert.deepEqual(r.structuredContent.rows.map((x) => x.code), ["I", "R", "S", "U"]);
+  assert.deepEqual(r.structuredContent.rows.map((x) => x.code), ["I", "N", "O", "R", "S", "U"]);
 });
 
 test("which_v2_fields_feed matches whole resource names", async () => {
