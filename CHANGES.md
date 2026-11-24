@@ -12,6 +12,7 @@
 - **OBX**: empty NM became `0`; NM accepted exponents; SN emitted `<>`/`=` comparators and ignored `+` suffixes; units without a coding system set `Quantity.code` (fails qty-3); OBX-5/OBX-17 repetitions were concatenated; OBX-8 `null` became a code. `<x`/`>x` reference ranges now set high/low.
 - **Datatypes and fields**: XCN.2/XPN.1 FN and XAD.1 SAD read subcomponent 1; XPN.12–14 and CWE.7/8 converted; AL1-5 and OBR-13 are ST (text, not system-less codes); OBR-31 repeats; OBR-32 NDL/CNN read correctly; SPM-17 DR → `collectedPeriod`; PID-25 must be a positive integer.
 - **Tools**: 10 → 8. `list_message_mappings` is `get_message_mapping` without a type; `get_field_mapping` is `get_segment_mapping` with `field`. Segment codes are validated. Internal errors are labelled separately from message errors.
+- **Identifier.system from HD**: a universal ID becomes a system only when it is valid for its table 0301 type (ISO → a real OID, UUID/GUID → a UUID, lower-cased, URI → an absolute URI). DNS host names (not URIs) and malformed values become `urn:id:` with a warning instead of an invalid `Identifier.system`.
 - Tests: 62 → 79, with realistic ADT^A01, lab ORU^R01 and ORM^O01 messages and encoding edge cases.
 
 ### Fixes from the first review

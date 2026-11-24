@@ -193,7 +193,7 @@ function convertParsed({ ctx, segs }, options) {
     b.note(`${where ? `${where} ${ctx.nulls.size === 1 ? "was" : "were"}` : "Some components were"} sent as the HL7 null "" (delete the stored value)${where && ctx.nullComponent ? ", as were some components" : ""}. The matching FHIR elements are absent: a PUT of the whole resource clears them, but a merge or PATCH pipeline must delete them explicitly.`);
   }
 
-  const bundle = b.bundle(controlId,timestamp && timestamp.includes("T") && !zonelessTime(timestamp) ? timestamp : undefined);
+  const bundle = b.bundle(controlId, timestamp && timestamp.includes("T") && !zonelessTime(timestamp) ? timestamp : undefined);
   return {
     messageType,
     fhirVersion: FHIR_VERSION,

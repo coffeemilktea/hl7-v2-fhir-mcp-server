@@ -2,20 +2,30 @@
 import { CONCEPT_MAPS, TERM } from "../maps.js";
 import { c, sub, tsComp, rawComp, reps, unesc, toFhirDate } from "./util.js";
 
+const OID_RE = /^[0-2](\.(0|[1-9]\d*))+$/;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ABSOLUTE_URI_RE = /^[A-Za-z][A-Za-z0-9+.-]*:\S+$/;
+
 /**
  * Resolve an HD-shaped namespace triple to an Identifier.system URI.
- * Only the universal ID is safe without a site lookup table; a bare namespace
- * gets a urn:id: form and a warning rather than a fabricated http URI.
+ * Only a universal ID of type ISO (a valid OID), UUID/GUID (a valid UUID) or
+ * URI (an absolute URI) is safe without a site lookup table. Anything else —
+ * a bare namespace, a DNS name (not a URI), another table 0301 type, or a value
+ * that does not match its declared type — gets a urn:id: form, assumed=true and
+ * a reason for the caller's warning, rather than a fabricated or invalid URI.
  */
 export function systemFrom(namespace, universalId, universalType) {
   if (universalId) {
     const t = (universalType || "").toUpperCase();
-    if (t === "ISO") return { system: `urn:oid:${universalId}`, assumed: false };
-    if (t === "UUID" || t === "GUID") return { system: `urn:uuid:${universalId}`, assumed: false };
-    if (t === "URI" || t === "DNS") return { system: universalId, assumed: false };
-    return { system: `urn:id:${universalId}`, assumed: true };
+    if (t === "ISO" && OID_RE.test(universalId)) return { system: `urn:oid:${universalId}`, assumed: false };
+    if ((t === "UUID" || t === "GUID") && UUID_RE.test(universalId)) return { system: `urn:uuid:${universalId.toLowerCase()}`, assumed: false };
+    if (t === "URI" && ABSOLUTE_URI_RE.test(universalId)) return { system: universalId, assumed: false };
+    const reason = !t ? "no universal ID type"
+      : ["ISO", "UUID", "GUID", "URI"].includes(t) ? `a universal ID that is not a valid ${t === "ISO" ? "OID" : t === "URI" ? "absolute URI" : "UUID"}`
+      : `universal ID type '${t}', which has no standard URI form`;
+    return { system: `urn:id:${universalId}`, assumed: true, reason };
   }
-  if (namespace) return { system: `urn:id:${namespace}`, assumed: true };
+  if (namespace) return { system: `urn:id:${namespace}`, assumed: true, reason: "no universal ID" };
   return { system: undefined, assumed: false };
 }
 
@@ -65,9 +75,9 @@ export function toIdentifier(value, ctx, warn) {
   const id = g(value, 1);
   if (!id) return undefined;
   const auth = rawComp(value, 4, ctx.compSep);
-  const { system, assumed } = systemFrom(s(auth, 1), s(auth, 2), s(auth, 3));
+  const { system, assumed, reason } = systemFrom(s(auth, 1), s(auth, 2), s(auth, 3));
   if (assumed && warn) {
-    warn(`Identifier '${id}' has assigning authority '${s(auth, 1) || s(auth, 2)}' with no universal ID type; emitted as ${system}. Replace it with the real system URI from your identifier registry.`);
+    warn(`Identifier '${id}' has assigning authority '${s(auth, 1) || s(auth, 2)}' with ${reason}; emitted as ${system}. Replace it with the real system URI from your identifier registry.`);
   }
   const typeCode = g(value, 5);
   return {
@@ -195,9 +205,9 @@ export function toIdentifierEI(value, ctx, warn, { level = "comp" } = {}) {
   const get = level === "sub" ? sub(ctx) : c(ctx);
   const id = get(value, 1);
   if (!id) return undefined;
-  const { system, assumed } = systemFrom(get(value, 2), get(value, 3), get(value, 4));
+  const { system, assumed, reason } = systemFrom(get(value, 2), get(value, 3), get(value, 4));
   if (assumed && warn) {
-    warn(`Identifier '${id}' has namespace '${get(value, 2) || get(value, 3)}' with no universal ID type; emitted as ${system}. Replace it with the real system URI from your identifier registry.`);
+    warn(`Identifier '${id}' has namespace '${get(value, 2) || get(value, 3)}' with ${reason}; emitted as ${system}. Replace it with the real system URI from your identifier registry.`);
   }
   return { ...(system ? { system } : {}), value: id };
 }

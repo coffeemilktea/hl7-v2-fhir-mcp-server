@@ -338,4 +338,23 @@ describe("composites and character sets", () => {
     assert.equal(allergy("MC").type, undefined, "a contraindication is not an allergy");
     assert.equal(allergy("MA").type, "allergy");
   });
+
+  test("HD universal ID becomes a system only when it is valid for its table 0301 type", () => {
+    const pids = (pid3) => one(convert(msg(`${H}ADT^A01^ADT_A01|HD${pid3.length}|P|2.5.1`, `PID|1||${pid3}`, "PV1|1|I")), "Patient");
+    const p = pids(
+      "A^^^&2.16.840.1.113883.19&ISO~B^^^&A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11&UUID~C^^^&https://id.example.org/mrn&URI" +
+      "~D^^^&hospital.example.org&DNS~E^^^&not-an-oid&ISO~F^^^&not-a-uuid&GUID"
+    );
+    assert.deepEqual(p.identifier.map((i) => i.system), [
+      "urn:oid:2.16.840.1.113883.19",
+      "urn:uuid:a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+      "https://id.example.org/mrn",
+      "urn:id:hospital.example.org",
+      "urn:id:not-an-oid",
+      "urn:id:not-a-uuid",
+    ]);
+    const r = convert(msg(`${H}ADT^A01^ADT_A01|HD2|P|2.5.1`, "PID|1||D^^^&hospital.example.org&DNS~E^^^&1.2.x&ISO", "PV1|1|I"));
+    assert.ok(r.warnings.some((w) => /'hospital\.example\.org' with universal ID type 'DNS', which has no standard URI form/.test(w)));
+    assert.ok(r.warnings.some((w) => /'1\.2\.x' with a universal ID that is not a valid OID/.test(w)));
+  });
 });
