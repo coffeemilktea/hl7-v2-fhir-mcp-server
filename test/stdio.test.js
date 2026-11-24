@@ -18,7 +18,7 @@ test("bin/cli.js speaks MCP over stdio by default", { timeout: 30_000 }, async (
     const info = client.getServerVersion();
     assert.equal(info.name, "hl7-v251-to-fhir");
     const { tools } = await client.listTools();
-    assert.equal(tools.length, 10);
+    assert.equal(tools.length, 8);
     const r = await client.callTool({ name: "lookup_concept_map", arguments: { table: "2", code: "A" } });
     assert.equal(r.structuredContent.server.fhir, "L");
   } finally {

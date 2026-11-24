@@ -30,41 +30,56 @@ const v251Field = (seg, seq) => {
   return f ? { name: f.name, dataType: f.type, optionality: f.opt, ...(f.table ? { table: f.table } : {}) } : null;
 };
 
-export function register(server) {
-  server.registerTool(
-    "list_message_mappings",
-    {
-      title: "List message mappings",
-      description: "List the HL7 v2.5.1 message types this server converts (and the triggers each covers), plus the message maps published in the HL7 v2-to-FHIR IG.",
-      inputSchema: {},
-      outputSchema: out({ fhirVersion: z.string(), server: z.array(z.object({ messageType: z.string() }).passthrough()), ig: z.array(z.string()) }),
-      annotations: { title: "List message mappings", ...READ_ONLY },
-    },
-    async () =>
-      ok({
-        fhirVersion: FHIR_VERSION,
-        server: Object.entries(MESSAGE_MAPS).map(([type, m]) => ({
-          messageType: type,
-          description: m.description,
-          produces: m.produces,
-          ...(m.alsoCovers ? { alsoCovers: m.alsoCovers } : {}),
-          pitfallCount: m.pitfalls.length,
-        })),
-        ig: ig.igMessageTypes(),
-        igSource: ig.attribution(),
-      })
-  );
+/** One field: v2.5.1 definition, the server rule and the IG rows. */
+function fieldMapping(segment, field, source) {
+  const def = v251Field(segment, field);
+  const m = SEGMENT_MAPS[segment];
+  const f = source !== "ig" ? m?.fields.find((x) => x.seq === field) : undefined;
+  const rows = source !== "server" ? ig.segmentMapsFor(segment, { field }) : [];
+  if (!def && !f && !rows.length) return fail(`${segment}-${field} is not defined in HL7 v2.5.1 and has no mapping.`);
+  return ok({
+    location: `${segment}-${field}`,
+    v251: def,
+    ...(source !== "ig"
+      ? { server: f ? { resource: m.resource, ...f } : null, ...(f ? {} : { serverNote: "No curated mapping in this server. An unmapped field is not necessarily unmappable — see the IG rows." }) }
+      : {}),
+    ...(source !== "server" ? { ig: rows.length ? { maps: rows, ...ig.attribution() } : null } : {}),
+  });
+}
 
+export function register(server) {
   server.registerTool(
     "get_message_mapping",
     {
       title: "Get a message mapping",
-      description: "Segment-to-resource plan for one HL7 v2.5.1 message type (e.g. ORU^R01, SIU^S12, MDM^T02), with known pitfalls, and the IG message map when one exists.",
-      inputSchema: { messageType: z.string().min(1).describe("Message type and trigger, e.g. ORM^O01, adt_a08, SIU^S13. Case-insensitive; _ or ^."), source },
-      outputSchema: out({ messageType: z.string() }),
+      description:
+        "Without messageType: list the HL7 v2.5.1 message types this server converts (with the triggers each covers) and the message maps in the HL7 v2-to-FHIR IG. " +
+        "With messageType (e.g. ORU^R01, SIU^S12, MDM^T02): its segment-to-resource plan, known pitfalls, and the IG message map when one exists.",
+      inputSchema: {
+        messageType: z.string().trim().min(1).optional().describe("Message type and trigger, e.g. ORM^O01, adt_a08, SIU^S13. Case-insensitive; _ or ^. Omit to list all."),
+        source,
+      },
+      outputSchema: out({ fhirVersion: z.string() }),
       annotations: { title: "Get a message mapping", ...READ_ONLY },
     },
     async ({ messageType, source }) => {
+      if (!messageType) {
+        return ok({
+          fhirVersion: FHIR_VERSION,
+          ...(source !== "ig"
+            ? {
+                server: Object.entries(MESSAGE_MAPS).map(([type, m]) => ({
+                  messageType: type,
+                  description: m.description,
+                  produces: m.produces,
+                  ...(m.alsoCovers ? { alsoCovers: m.alsoCovers } : {}),
+                  pitfallCount: m.pitfalls.length,
+                })),
+              }
+            : {}),
+          ...(source !== "server" ? { ig: ig.igMessageTypes(), igSource: ig.attribution() } : {}),
+        });
+      }
       const key = messageKey(messageType);
       const s = source !== "ig" ? serverMessageMap(key) : null;
       const i = source !== "server" ? ig.messageMapFor(key) : null;
@@ -85,12 +100,20 @@ export function register(server) {
     {
       title: "Get a segment mapping",
       description:
-        "Field-by-field FHIR mapping for one HL7 v2.5.1 segment. IG rows are flagged inV251=false when they name a field that does not exist in v2.5.1 (the IG is written against later versions). IG rows are paginated.",
-      inputSchema: { segment: segmentCode, source, offset, limit: limit(100, 500) },
-      outputSchema: out({ segment: z.string() }),
+        "FHIR mapping for an HL7 v2.5.1 segment, or for one field when `field` is given (e.g. segment=OBR, field=25 for OBR-25: its v2.5.1 definition, this server's rule and the IG rows). " +
+        "IG rows are flagged inV251=false when they name a field that does not exist in v2.5.1 (the IG is written against later versions). Whole-segment IG rows are paginated.",
+      inputSchema: {
+        segment: segmentCode,
+        field: z.coerce.number().int().positive().optional().describe("Field sequence number, e.g. 25 for OBR-25. Omit for the whole segment."),
+        source,
+        offset,
+        limit: limit(100, 500),
+      },
+      outputSchema: out({}),
       annotations: { title: "Get a segment mapping", ...READ_ONLY },
     },
-    async ({ segment, source, offset, limit }) => {
+    async ({ segment, field, source, offset, limit }) => {
+      if (field !== undefined) return fieldMapping(segment, field, source);
       const s = source !== "ig" ? SEGMENT_MAPS[segment] : undefined;
       const maps = source !== "server" ? ig.segmentMapsFor(segment) : [];
       if (!s && !maps.length) {
@@ -109,34 +132,6 @@ export function register(server) {
         },
         { hint: "Use source=server, or page the IG rows with offset/limit." }
       );
-    }
-  );
-
-  server.registerTool(
-    "get_field_mapping",
-    {
-      title: "Get a field mapping",
-      description: "FHIR target for one HL7 v2.5.1 field (e.g. PID-5, OBR-25), with its v2.5.1 definition, this server's rule and the IG rows for it.",
-      inputSchema: {
-        segment: segmentCode,
-        field: z.coerce.number().int().positive().describe("Field sequence number, e.g. 25 for OBR-25. A string like '25' is accepted."),
-      },
-      outputSchema: out({ location: z.string() }),
-      annotations: { title: "Get a field mapping", ...READ_ONLY },
-    },
-    async ({ segment, field }) => {
-      const def = v251Field(segment, field);
-      const m = SEGMENT_MAPS[segment];
-      const f = m?.fields.find((x) => x.seq === field);
-      const rows = ig.segmentMapsFor(segment, { field });
-      if (!def && !f && !rows.length) return fail(`${segment}-${field} is not defined in HL7 v2.5.1 and has no mapping.`);
-      return ok({
-        location: `${segment}-${field}`,
-        v251: def,
-        server: f ? { resource: m.resource, ...f } : null,
-        ...(f ? {} : { serverNote: "No curated mapping in this server. An unmapped field is not necessarily unmappable — see the IG rows." }),
-        ig: rows.length ? { maps: rows, ...ig.attribution() } : null,
-      });
     }
   );
 

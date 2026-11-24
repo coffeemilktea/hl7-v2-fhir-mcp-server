@@ -3,7 +3,7 @@
  *   ORM^O01 (general order), OML^O21 (laboratory order), OMI^O23 (imaging order).
  */
 import { TERM } from "../maps.js";
-import { c, rawComp, reps, unesc, toFhirDate, first } from "./util.js";
+import { c, reps, unesc, toFhirDate, first } from "./util.js";
 import { toCodeableConcept, toIdentifierEI } from "./datatypes.js";
 import { buildPatient, buildEncounter, buildObservation, buildSpecimen, buildServiceRequest, buildAllergy } from "./segments.js";
 import { igLookup } from "./igmaps.js";

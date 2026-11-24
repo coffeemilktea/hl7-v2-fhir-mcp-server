@@ -95,7 +95,7 @@ export const DATATYPE_MAPS = {
   },
   TS: {
     fhir: "dateTime | instant | date",
-    notes: "Precision is preserved, not padded: YYYY → date, YYYYMMDD → date, anything with a time → dateTime. FHIR requires a timezone offset once seconds are present, so a TS with time and no offset is the single most common source of silent cross-site shifts.",
+    notes: "Precision is preserved, not padded: YYYY → date, YYYYMMDD → date, anything with a time → dateTime (minutes and seconds padded with 00, as FHIR requires). FHIR requires a timezone offset whenever a time is present, so a TS with time and no offset is the single most common source of silent cross-site shifts.",
     components: [
       { comp: 1, name: "Time", path: "(the value)", note: "YYYY[MM[DD[HH[MM[SS[.S[S[S[S]]]]]]]]][+/-ZZZZ]" },
       { comp: 2, name: "Degree of Precision", path: "(dropped)", note: "Deprecated in v2.5.1; precision is expressed by the length of component 1." },

@@ -51,8 +51,8 @@ describe("HTTP transport (loopback, no key)", { timeout: 30_000 }, () => {
     try {
       await client.connect(transport);
       const { tools } = await client.listTools();
-      assert.equal(tools.length, 10);
-      const r = await client.callTool({ name: "get_field_mapping", arguments: { segment: "PID", field: 3 } });
+      assert.equal(tools.length, 8);
+      const r = await client.callTool({ name: "get_segment_mapping", arguments: { segment: "PID", field: 3 } });
       assert.equal(r.structuredContent.v251.dataType, "CX");
       assert.equal(s.sessions.size, 1);
       await transport.terminateSession();

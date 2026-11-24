@@ -18,7 +18,10 @@ const call = (name, args = {}) => client.callTool({ name, arguments: args });
 
 test("tools have titles, read-only annotations and output schemas", async () => {
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 10);
+  assert.deepEqual(tools.map((t) => t.name).sort(), [
+    "compare_with_ig", "convert_datetime", "convert_message", "get_datatype_mapping",
+    "get_message_mapping", "get_segment_mapping", "lookup_concept_map", "which_v2_fields_feed",
+  ]);
   for (const t of tools) {
     assert.ok(t.title, `${t.name} title`);
     assert.equal(t.annotations.readOnlyHint, true, t.name);
@@ -26,8 +29,8 @@ test("tools have titles, read-only annotations and output schemas", async () => 
   }
 });
 
-test("list_message_mappings includes the new types and the IG list", async () => {
-  const r = await call("list_message_mappings");
+test("get_message_mapping without a type lists server and IG message maps", async () => {
+  const r = await call("get_message_mapping");
   const types = r.structuredContent.server.map((m) => m.messageType);
   for (const t of ["SIU^S12", "MDM^T02", "OML^O21", "OMI^O23"]) assert.ok(types.includes(t), t);
   assert.ok(r.structuredContent.ig.includes("VXU^V04"));
@@ -54,14 +57,18 @@ test("get_segment_mapping pages IG rows", async () => {
   assert.ok(rxa.structuredContent.ig.total > 0);
 });
 
-test("get_field_mapping returns the v2.5.1 definition with server and IG rows", async () => {
-  const r = await call("get_field_mapping", { segment: "PD1", field: "8" });
+test("get_segment_mapping with a field returns the v2.5.1 definition with server and IG rows", async () => {
+  const r = await call("get_segment_mapping", { segment: "PD1", field: "8" });
   assert.equal(r.structuredContent.v251.name, "Organ Donor Code");
   assert.equal(r.structuredContent.server.seq, 8);
-  const unmapped = await call("get_field_mapping", { segment: "PID", field: 38 });
+  const unmapped = await call("get_segment_mapping", { segment: "PID", field: 38 });
   assert.equal(unmapped.structuredContent.server, null);
-  const missing = await call("get_field_mapping", { segment: "PID", field: 99 });
+  const missing = await call("get_segment_mapping", { segment: "PID", field: 99 });
   assert.equal(missing.isError, true);
+  const igOnly = await call("get_segment_mapping", { segment: "OBR", field: 25, source: "ig" });
+  assert.equal("server" in igOnly.structuredContent, false);
+  const bad = await call("get_segment_mapping", { segment: "P-D" });
+  assert.equal(bad.isError, true);
 });
 
 test("get_datatype_mapping: CE has no component 9; CWE does", async () => {

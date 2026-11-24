@@ -1,14 +1,14 @@
 /** Whole-message converters: HL7 v2.5.1 message → FHIR R4 transaction Bundle. */
-import { CONCEPT_MAPS, FHIR_VERSION, MESSAGE_MAPS, TERM } from "../maps.js";
+import { FHIR_VERSION, MESSAGE_MAPS } from "../maps.js";
 import { parse, c, reps, unesc, toFhirDate, zonelessTime, first, all, withDiagnostics, MessageError } from "./util.js";
-import { toCodeableConcept, toIdentifier } from "./datatypes.js";
+import { toIdentifier } from "./datatypes.js";
 import { makeBundle, conditional } from "./bundle.js";
 import { orderGroups, mergeNarrative, noteText, convertOrders } from "./orders.js";
 import { convertSIU } from "./scheduling.js";
 import { convertMDM } from "./documents.js";
 import {
   REPORT_CATEGORY, buildPatient, buildContact, buildEncounter, buildAllergy, buildCondition,
-  buildServiceRequest, buildObservation, buildSpecimen, buildReport, practitionerRef, locationRef,
+  buildObservation, buildSpecimen, buildReport,
 } from "./segments.js";
 
 // ─── Message converters ──────────────────────────────────────────────────────

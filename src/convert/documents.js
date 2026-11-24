@@ -5,7 +5,7 @@
  */
 import { TERM } from "../maps.js";
 import { c, rawComp, reps, unesc, toFhirDate, zonelessTime, first, all } from "./util.js";
-import { toCodeableConcept, toIdentifierEI } from "./datatypes.js";
+import { toIdentifierEI } from "./datatypes.js";
 import { conditional } from "./bundle.js";
 import { buildPatient, buildEncounter, buildServiceRequest, practitionerRef } from "./segments.js";
 import { orderGroups } from "./orders.js";

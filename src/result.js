@@ -30,5 +30,3 @@ export function fail(message) {
 
 /** Annotations for pure, local, read-only tools. */
 export const READ_ONLY = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false };
-/** Same, but the output can differ between calls (timestamps, generated ids). */
-export const READ_ONLY_NON_IDEMPOTENT = { ...READ_ONLY, idempotentHint: false };

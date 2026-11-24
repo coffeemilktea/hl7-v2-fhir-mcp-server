@@ -17,6 +17,7 @@ export const segmentCode = z
   .trim()
   .min(1)
   .transform((s) => s.toUpperCase())
+  .pipe(z.string().regex(/^[A-Z][A-Z0-9]{2}$/, "A segment code is three characters: a letter then two letters or digits, e.g. PID."))
   .describe("Three-character segment code, e.g. MSH, PID, OBR, OBX, ZDS. Case-insensitive.");
 
 export const offset = z.coerce.number().int().min(0).default(0).describe("Index of the first item to return (pagination). Default 0.");
