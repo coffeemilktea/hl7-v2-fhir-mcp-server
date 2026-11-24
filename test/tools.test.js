@@ -130,6 +130,18 @@ test("convert_message: every fixture type, summary mode and errors", async () =>
   assert.equal(full.structuredContent.bundle.resourceType, "Bundle");
   const bad = await call("convert_message", { message: "PID|1" });
   assert.equal(bad.isError, true);
+  assert.match(bad.content[0].text, /^Conversion failed: Message must begin with an MSH segment/);
+});
+
+test("convert_message rejects empty, whitespace-only and malformed input with readable errors", async () => {
+  for (const message of ["", "   \r\n  "]) {
+    const r = await call("convert_message", { message });
+    assert.equal(r.isError, true);
+    assert.match(r.content[0].text, /message is empty/i);
+  }
+  const dup = await call("convert_message", { message: "MSH|^^~\\|A|B|C|D|20260101||ADT^A01|1|P|2.5.1" });
+  assert.equal(dup.isError, true);
+  assert.match(dup.content[0].text, /not all distinct/);
 });
 
 test("resources", async () => {
