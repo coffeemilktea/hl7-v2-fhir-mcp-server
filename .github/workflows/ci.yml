@@ -13,7 +13,7 @@ env:
   # is published to npm. Pin the commit so a push to hl7-v2-mcp-server cannot break this repo's
   # CI unannounced; bump it deliberately (and re-run npm install so package-lock.json follows).
   # The repo is public, so the default GITHUB_TOKEN is enough to check it out.
-  HL7V2_CORE_REF: 974b4b8b8e21008f5519bbcd6616c1a14e99c442
+  HL7V2_CORE_REF: 458e5caf79ce969f96c39c161f3664da2e732d61
   FHIR_VALIDATOR_VERSION: 7.0.2
   FHIR_VALIDATOR_SHA256: e3e50f06b806437821b7aef8189a1b790415cb96c5036e0812ed62981452b377
 
