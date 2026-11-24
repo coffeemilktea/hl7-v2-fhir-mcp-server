@@ -39,7 +39,7 @@ code by code:
 | 0001 | N → `unknown` | N → `other` |
 | 0004 | R, C → `AMB`; B → `IMP`; N, U → no class (warned) | B, C, N, R, U keep the v2-0004 code |
 | 0007 | A, E → `EM`; C → `EL`; L, N → `R`; U → `UR` (v3 ActPriority) | keeps the v2-0007 code |
-| 0085 | I → `registered`; R, S → `preliminary`; U → `final` | no target |
+| 0085 | I, O → `registered`; R, S → `preliminary`; U → `final`; N → `cancelled` | no target |
 | 0119 | CA → `revoked`; HD → `on-hold`; XO, XX, SC, SN → `active`; RP → `revoked` | CA, HD → `active`; others no target |
 | 0123 | A → `partial`; R → `preliminary`; Y → `entered-in-error`; Z → `unknown` | R → `partial`; A, Y, Z no target |
 
@@ -55,9 +55,9 @@ Table 0002 (Marital Status) now matches the IG exactly.
 | Message conversions | ADT A01/A04/A08/A31/A40, ORM^O01, ORU^R01 | + **SIU** (S12–S24, S26), **MDM** (T01–T11), **OML^O21**, **OMI^O23** |
 | Curated segment maps | 15 segments, 132 fields | 23 segments, 170 fields |
 | Curated data type maps | 16 | 17 (adds CWE) |
-| Curated ConceptMaps | 13 tables, 130 codes | 13 tables, 137 codes (0002 rebuilt with all 16 v2.5.1 codes) |
+| Curated ConceptMaps | 13 tables, 130 codes | 13 tables, 139 codes (0002 rebuilt with all 16 v2.5.1 codes; 0085 complete) |
 | IG reference data | — | 13 message maps, 75 segment maps, 105 data type maps, 99 ConceptMaps |
-| Tools / resources | 9 / 0 | 10 / 5 |
+| Tools / resources | 9 / 0 | 8 / 5 |
 | FHIR validator (R4, no tx server) | ORU fails (2 errors) | 13 sample bundles, **0 errors** (run in the test suite) |
 
 ## Quick start
@@ -121,10 +121,8 @@ lenient input (`"25"` or `25`; table `2` or `0002`; `siu_s12`, `SIU^S12`).
 
 | Tool | What it does |
 |---|---|
-| `list_message_mappings` | Message types the server converts (and the triggers each covers), plus the IG's message maps. |
-| `get_message_mapping` | Segment-to-resource plan and pitfalls for one message type; the IG message map alongside. `SIU^S13` resolves to the `SIU^S12` plan. |
-| `get_segment_mapping` | Field-by-field targets for a segment: the server's rules and the IG rows (paginated, flagged against v2.5.1). |
-| `get_field_mapping` | One field: its v2.5.1 definition, the server's rule and the IG rows. |
+| `get_message_mapping` | No `messageType`: every message type the server converts plus the IG's message maps. With one: its segment-to-resource plan and pitfalls, with the IG message map alongside. `SIU^S13` resolves to the `SIU^S12` plan. |
+| `get_segment_mapping` | Field-by-field targets for a segment (server rules and IG rows, paginated, flagged against v2.5.1). With `field`: one field's v2.5.1 definition, server rule and IG rows. |
 | `get_datatype_mapping` | Component mapping for a data type. `igMap` picks one IG map (CWE has 14). |
 | `lookup_concept_map` | Translate a table value: server target, IG target, whether they differ, and the code's v2.5.1 status. |
 | `compare_with_ig` | **New.** Every place the server's ConceptMaps differ from the IG, as a summary or code by code. |
@@ -168,13 +166,16 @@ Resources: `fhirmap://segment/{code}`, `fhirmap://datatype/{code}`, `fhirmap://c
 | **Precision is preserved** | `19800115` is a `date`; `202501` stays `2025-01`. |
 | **Timezones are never assumed** | A TS with a time and no offset is converted without one and flagged; it is never used for an `instant`. |
 | **Idempotent output** | `fullUrl`s come from MSH-10 and the resource's logical key, so the same message always gives the same bundle. |
-| **Escapes are reversed** | HL7 escapes are decoded by the shared `hl7v2-core` parser. |
-| **OBX-2 decides value[x]** | NM → `valueQuantity`, SN → Quantity/Range/Ratio, CE → `valueCodeableConcept`. CWE and IS in OBX-2 are converted but labelled as non-v2.5.1 value types. |
+| **Delimiters come from MSH-1/MSH-2** | Any valid delimiter set works; invalid or duplicate delimiters, batches (FHS/BHS), several messages in one input and input over 1,000,000 characters are rejected with a clear error. Segments may end in CR, LF or CRLF; MLLP framing is stripped. |
+| **Escapes are reversed** | `\F\ \S\ \T\ \R\ \E\`, `\Xhh\` in the MSH-18 character set (UTF-8 or ISO 8859-1), `\.br\ \.sp\ \.ce\` as line breaks; `\H\ \N\` and other formatting commands dropped; unknown sequences kept verbatim. |
+| **`""` is a delete, not a value** | A field or component sent as the HL7 null `""` produces no element (never the literal `""`), and a note lists the fields to delete downstream. |
+| **Invalid timestamps are dropped, not guessed** | A TS/DTM with an impossible date or offset is reported and omitted. TM becomes FHIR `time`. |
+| **OBX-2 decides value[x]** | NM → `valueQuantity` (empty is no value, not 0), SN → Quantity/Range/Ratio (only FHIR comparators), CE → `valueCodeableConcept`, TM → `valueTime`. `Quantity.code` is set only when OBX-6 names a coding system. CWE and IS in OBX-2 are converted but labelled as non-v2.5.1 value types. |
 
 ## Example prompts
 
 ```text
-"Where does OBR-25 go in FHIR, and does the IG agree?"        → get_field_mapping, lookup_concept_map
+"Where does OBR-25 go in FHIR, and does the IG agree?"        → get_segment_mapping(field=25), lookup_concept_map
 "DiagnosticReport.effectiveDateTime is empty. Which field?"    → which_v2_fields_feed
 "Where does this server differ from the HL7 v2-to-FHIR IG?"   → compare_with_ig
 "Convert this SIU^S12 to an Appointment."                      → convert_message

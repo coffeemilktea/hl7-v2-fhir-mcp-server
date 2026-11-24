@@ -1,8 +1,20 @@
 # Changes
 
-## 2.0.0 (unreleased, branch `buildout`)
+## 2.0.0 (unreleased)
 
-### Fixes from the review
+### v2.5.1 conformance rework
+
+- **Message reading** (`src/convert/util.js`): delimiters come from MSH-1 and MSH-2 itself (a short MSH-2 no longer made `|` a delimiter); invalid or duplicate delimiters, empty input, batches (FHS/BHS), several MSH in one input, input over 1,000,000 characters, a missing MSH-9 trigger and ACKs are rejected with clear errors. Stray non-segment lines are reported and skipped. Missing MSH-7/11/12 are warned about.
+- **HL7 null**: a field or component sent as `""` is a delete. It no longer leaks through as the literal `""` (or as an "invalid code" warning); the element is omitted and a note lists the fields.
+- **Escapes**: `\Xhh\` decodes in the MSH-18 character set (UTF-8 or ISO 8859-1); `\.sp n\` and `\.ce\` become line breaks, `\.sk n\` spaces.
+- **TS/DTM** values with impossible dates or offsets (e.g. `20250229`, `+2500`) are reported and omitted instead of producing invalid FHIR dates. **TM** becomes FHIR `hh:mm:ss`.
+- **Tables**: XPN.7/0200 (U, T were `temp`; A was `anonymous`), XAD.7/0190 (BDL is birth delivery location, not billing; P is permanent, not temp; M is `type=postal`), XTN.2/0201 (ORN was work; ASN/EMR were temp), AL1-2/0127 (MA/MC are not medication), DG1-6/0052 (W/F are not discharge diagnoses), 0085 (N and O are valid v2.5.1 codes).
+- **OBX**: empty NM became `0`; NM accepted exponents; SN emitted `<>`/`=` comparators and ignored `+` suffixes; units without a coding system set `Quantity.code` (fails qty-3); OBX-5/OBX-17 repetitions were concatenated; OBX-8 `null` became a code. `<x`/`>x` reference ranges now set high/low.
+- **Datatypes and fields**: XCN.2/XPN.1 FN and XAD.1 SAD read subcomponent 1; XPN.12–14 and CWE.7/8 converted; AL1-5 and OBR-13 are ST (text, not system-less codes); OBR-31 repeats; OBR-32 NDL/CNN read correctly; SPM-17 DR → `collectedPeriod`; PID-25 must be a positive integer.
+- **Tools**: 10 → 8. `list_message_mappings` is `get_message_mapping` without a type; `get_field_mapping` is `get_segment_mapping` with `field`. Segment codes are validated. Internal errors are labelled separately from message errors.
+- Tests: 62 → 79, with realistic ADT^A01, lab ORU^R01 and ORM^O01 messages and encoding edge cases.
+
+### Fixes from the first review
 
 - **Table 0002 (Marital Status)** was built from v3 codes as if they were v2 codes (v2 `A` = Separated was sent as v3 `A` = Annulled; `L` is not a v2.5.1 code; N, C, G, R, E, I, B, O were missing). Rebuilt with all 16 v2.5.1 codes as mapped by the IG ConceptMap `table-hl70002-to-v3-maritalstatus`; U, O and T go to v3-NullFlavor (UNK, OTH, NAVU). An out-of-table PID-16 now warns.
 - **CE component 9** removed (CE has 6 components in v2.5.1). A CWE map was added (9 components; CWE.9 Original Text → `CodeableConcept.text`, which the converter now uses).
