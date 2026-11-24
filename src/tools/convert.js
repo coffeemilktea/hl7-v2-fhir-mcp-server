@@ -2,7 +2,7 @@
 import { z } from "zod";
 import { convert, SUPPORTED_TYPES } from "../convert/messages.js";
 import { PARTICIPANT_STATUSES } from "../convert/scheduling.js";
-import { toFhirDate, zonelessTime } from "../convert/util.js";
+import { toFhirDate, zonelessTime, MessageError } from "../convert/util.js";
 import { ok, fail, READ_ONLY } from "../result.js";
 import { message, out } from "../schemas.js";
 
@@ -57,7 +57,9 @@ export function register(server) {
       try {
         result = convert(message, { participantStatus });
       } catch (err) {
-        return fail(`Conversion failed: ${err.message}`);
+        // MessageError / Error = a problem with the message; TypeError etc. = a defect in this server.
+        if (err instanceof MessageError || err.constructor === Error) return fail(`Conversion failed: ${err.message}`);
+        return fail(`Internal error while converting (please report it with a synthetic copy of the message): ${err.name}: ${err.message}`);
       }
       const summary = {
         messageType: result.messageType,

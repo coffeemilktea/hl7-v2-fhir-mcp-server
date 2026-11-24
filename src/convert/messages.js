@@ -1,6 +1,6 @@
 /** Whole-message converters: HL7 v2.5.1 message → FHIR R4 transaction Bundle. */
 import { CONCEPT_MAPS, FHIR_VERSION, MESSAGE_MAPS, TERM } from "../maps.js";
-import { parse, c, sub, rawComp, reps, unesc, toFhirDate, zonelessTime, first, all } from "./util.js";
+import { parse, c, reps, unesc, toFhirDate, zonelessTime, first, all, withDiagnostics, MessageError } from "./util.js";
 import { toCodeableConcept, toIdentifier } from "./datatypes.js";
 import { makeBundle, conditional } from "./bundle.js";
 import { orderGroups, mergeNarrative, noteText, convertOrders } from "./orders.js";
@@ -134,14 +134,23 @@ function convertORU(segs, ctx, b) {
 /** Message types convert_message accepts. */
 export const SUPPORTED_TYPES = ["ADT", "ORM", "OML", "OMI", "ORU", "SIU", "MDM"];
 
-/** Convert any supported message into a FHIR R4 transaction Bundle. */
+/**
+ * Convert any supported message into a FHIR R4 transaction Bundle.
+ * Throws MessageError (or Error) for a message that cannot be converted.
+ */
 export function convert(message, options = {}) {
-  const { ctx, segs } = parse(message);
+  const [result, diagnostics] = withDiagnostics(() => convertParsed(parse(message), options));
+  // Parse-level findings (ignored lines, invalid timestamps) go first: they explain gaps in the bundle.
+  result.warnings = [...diagnostics, ...result.warnings.filter((w) => !diagnostics.includes(w))];
+  return result;
+}
+
+function convertParsed({ ctx, segs }, options) {
   const msh = segs[0];
-  if (!msh || msh.name !== "MSH") throw new Error("Message does not begin with an MSH segment.");
   const g = c(ctx);
   const type = g(msh.f(9), 1).toUpperCase();
   const trigger = g(msh.f(9), 2).toUpperCase();
+  if (!type || !trigger) throw new MessageError(`MSH-9 (message type) must give the message code and trigger event, e.g. ADT^A01^ADT_A01; got '${unesc(msh.f(9), ctx) || "(empty)"}'.`);
   const controlId = g(msh.f(10), 1);
   const version = g(msh.f(12), 1);
   const timestamp = toFhirDate(g(msh.f(7), 1));
@@ -150,19 +159,24 @@ export function convert(message, options = {}) {
   if (!controlId) {
     b.warn("MSH-10 (message control ID) is empty. Bundle identifiers and the urn:uuid keys are then unstable, so the same message will not convert idempotently.");
   }
-  if (version && version !== "2.5.1") {
-    b.warn(`MSH-12 declares version '${version}', not 2.5.1. The mappings still apply, but check the fields this server reads against that version before trusting the output.`);
+  if (!version) {
+    b.warn("MSH-12 (version ID) is empty; it is required. The message was read as v2.5.1.");
+  } else if (version !== "2.5.1") {
+    b.warn(`MSH-12 declares version '${version}', not 2.5.1. It was read with the v2.5.1 field definitions; check the fields this server reads against that version before trusting the output.`);
   }
   const processing = g(msh.f(11), 1).toUpperCase();
-  if (processing && processing !== "P") {
-    b.warn(`MSH-11 processing ID is '${processing}' (not production). This bundle must not be posted to a production FHIR store.`);
+  if (!processing) b.warn("MSH-11 (processing ID) is empty; it is required. Treat the bundle as non-production until the sender fills it in.");
+  else if (processing !== "P") {
+    b.warn(`MSH-11 processing ID is '${processing}' (${processing === "T" ? "training" : processing === "D" ? "debugging" : "not production"}). This bundle must not be posted to a production FHIR store.`);
   }
+  if (!g(msh.f(7), 1)) b.warn("MSH-7 (date/time of message) is empty; it is required. Bundle.timestamp was omitted.");
   if (zonelessTime(timestamp)) {
     b.warn("MSH-7 has a time with no timezone offset, but Bundle.timestamp is an instant, which requires one. The offset was left off — supply the sender's zone before posting.");
   }
 
   let result;
   const messageType = `${type}^${trigger}`;
+  if (type === "ACK") throw new MessageError("This is an acknowledgement (ACK); it carries no clinical content to convert.");
   if (type === "ADT") result = convertADT(segs, ctx, b, trigger);
   else if (type === "ORM" || type === "OML" || type === "OMI") result = convertOrders(segs, ctx, b, type);
   else if (type === "ORU") result = convertORU(segs, ctx, b);
@@ -174,7 +188,12 @@ export function convert(message, options = {}) {
     b.warn(`ADT^${trigger} has no dedicated profile here; it was converted with the generic ADT rules (Patient + Encounter). Documented triggers: A01, A04, A08, A31, A40.`);
   }
 
-  const bundle = b.bundle(controlId, timestamp && timestamp.includes("T") && !zonelessTime(timestamp) ? timestamp : undefined);
+  if (ctx.nulls.size || ctx.nullComponent) {
+    const where = [...ctx.nulls].join(", ");
+    b.note(`${where ? `${where} ${ctx.nulls.size === 1 ? "was" : "were"}` : "Some components were"} sent as the HL7 null "" (delete the stored value)${where && ctx.nullComponent ? ", as were some components" : ""}. The matching FHIR elements are absent: a PUT of the whole resource clears them, but a merge or PATCH pipeline must delete them explicitly.`);
+  }
+
+  const bundle = b.bundle(controlId,timestamp && timestamp.includes("T") && !zonelessTime(timestamp) ? timestamp : undefined);
   return {
     messageType,
     fhirVersion: FHIR_VERSION,

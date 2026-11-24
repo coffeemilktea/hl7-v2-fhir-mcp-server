@@ -3,11 +3,14 @@
  * ids without leading zeros or message types in lower case; accept them.
  */
 import { z } from "zod";
+import { MAX_MESSAGE_CHARS } from "./convert/util.js";
 
 export const message = z
   .string()
-  .min(1)
-  .describe("HL7 v2 message text (pipe-delimited). Segments may end in \\r, \\n or \\r\\n; MLLP framing (0x0B ... 0x1C 0x0D) is stripped automatically.");
+  .trim()
+  .min(1, "The message is empty.")
+  .max(MAX_MESSAGE_CHARS, `The message is over ${MAX_MESSAGE_CHARS.toLocaleString("en-US")} characters; send one message at a time.`)
+  .describe("One HL7 v2.5.1 message starting with MSH. Delimiters are read from MSH-1/MSH-2. Segments may end in \\r, \\n or \\r\\n; MLLP framing is stripped.");
 
 export const segmentCode = z
   .string()
