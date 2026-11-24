@@ -6,7 +6,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { convert } from "../src/convert/messages.js";
-import { parse, unesc, toFhirDate, toFhirTime, MAX_MESSAGE_CHARS } from "../src/convert/util.js";
+import { parse, unesc, sub, tsComp, toFhirDate, toFhirTime, MAX_MESSAGE_CHARS } from "../src/convert/util.js";
 import { seg } from "./fixtures.js";
 
 const msg = (...segs) => segs.join("\r");
@@ -41,8 +41,8 @@ const ADT_A01 = msg(
   seg("PV1", { 1: "1", 2: "I", 3: "2000^2012^01^GHH", 4: "R", 7: "004777^ATTEND^AARON^A^^^DR", 10: "SUR", 19: "V00042^^^GHH^VN", 44: "20260301080000-0500" }),
   seg("AL1", { 1: "1", 2: "DA", 3: "70618^Penicillin^RXNORM", 4: "SV", 5: "HIVES~WHEEZING" }),
   seg("AL1", { 1: "2", 2: "MA", 3: "LATEX^Latex^99LOCAL" }),
-  seg("DG1", { 1: "1", 2: "I10", 3: "K35.80^Acute appendicitis^I10", 6: "W" }),
-  seg("DG1", { 1: "2", 2: "I10", 3: "R10.31^Right lower quadrant pain^I10", 6: "A" })
+  seg("DG1", { 1: "1", 2: "I10", 3: "K35.8^Acute appendicitis, other and unspecified^I10", 6: "W" }),
+  seg("DG1", { 1: "2", 2: "I10", 3: "R10.3^Pain localized to other parts of lower abdomen^I10", 6: "A" })
 );
 
 const ORU_LAB = msg(
@@ -58,11 +58,13 @@ const ORU_LAB = msg(
   seg("OBX", { 1: "1", 2: "NM", 3: "2345-7^Glucose^LN", 5: "182", 6: "mg/dL^mg/dL^UCUM", 7: "70-99", 8: "H~A", 11: "F", 14: "20260302070000-0500" }),
   seg("OBX", { 1: "2", 2: "NM", 3: "2160-0^Creatinine^LN", 5: "0.9", 6: "mg/dL", 7: "<1.3", 8: "N", 11: "F" }),
   seg("OBX", { 1: "3", 2: "SN", 3: "33914-3^eGFR^LN", 5: ">^60", 6: "mL/min/{1.73_m2}^^UCUM", 11: "F" }),
-  seg("OBX", { 1: "4", 2: "SN", 3: "5767-9^Urine appearance^LN", 5: "^1^:^128", 11: "F" }),
+  seg("OBX", { 1: "4", 2: "SN", 3: "T1^Antibody titer^99LOC", 5: "^1^:^128", 11: "F" }),
   seg("OBX", { 1: "5", 2: "NM", 3: "2951-2^Sodium^LN", 6: "mmol/L^^UCUM", 11: "X" }),
-  seg("OBX", { 1: "6", 2: "SN", 3: "5803-2^Protein^LN", 5: "<>^5", 11: "F" }),
+  seg("OBX", { 1: "6", 2: "SN", 3: "T2^Semi-quantitative result^99LOC", 5: "<>^5", 11: "F" }),
   seg("OBX", { 1: "7", 2: "TM", 3: "X1^Collection time^99LOC", 5: "0730", 11: "F" }),
-  seg("OBX", { 1: "8", 2: "NM", 3: "X2^Bad number^99LOC", 5: "1e3", 11: "N" }),
+  seg("OBX", { 1: "8", 2: "NM", 3: "X2^Bad number^99LOC", 5: "1e3", 11: "F" }),
+  seg("OBX", { 1: "9", 2: "NM", 3: "X3^Not asked^99LOC", 11: "N" }),
+  seg("OBX", { 1: "10", 2: "CWE", 3: "X4^Later-version type^99LOC", 5: "POS^Positive^99LOC", 11: "F" }),
   "NTE|1||Specimen slightly hemolyzed.",
   seg("SPM", { 1: "1", 2: "SP77&LAB", 4: "119297000^Blood specimen^SCT", 17: "20260302065500-0500^20260302070000-0500" })
 );
@@ -122,16 +124,19 @@ describe("realistic v2.5.1 messages", () => {
     assert.deepEqual(creat.valueQuantity, { value: 0.9, unit: "mg/dL" }, "no Quantity.code without a system (qty-3)");
     assert.deepEqual(creat.referenceRange[0].high, { value: 1.3 });
     assert.equal(obsByCode(r, "33914-3").valueQuantity.comparator, ">");
-    assert.deepEqual(obsByCode(r, "5767-9").valueRatio, { numerator: { value: 1 }, denominator: { value: 128 } });
+    assert.deepEqual(obsByCode(r, "T1").valueRatio, { numerator: { value: 1 }, denominator: { value: 128 } });
     const sodium = obsByCode(r, "2951-2");
     assert.equal(sodium.valueQuantity, undefined, "empty NM is no value, not 0");
     assert.equal(sodium.status, "cancelled");
-    assert.equal(obsByCode(r, "5803-2").valueString, "<>5", "<> is not a FHIR comparator");
+    assert.equal(obsByCode(r, "T2").valueString, "<>5", "<> is not a FHIR comparator");
     assert.equal(obsByCode(r, "X1").valueTime, "07:30:00");
     const bad = obsByCode(r, "X2");
     assert.equal(bad.valueString, "1e3", "exponents are not v2 NM");
-    assert.equal(bad.status, "cancelled", "OBX-11 N is a v2.5.1 code");
+    assert.equal(obsByCode(r, "X3").status, "cancelled", "OBX-11 N (not asked) is a v2.5.1 code");
     assert.ok(!r.warnings.some((w) => /OBX-11 'N' is not in HL7 table 0085/.test(w)));
+    assert.equal(obsByCode(r, "X4").valueCodeableConcept.coding[0].code, "POS");
+    assert.ok(r.warnings.some((w) => /OBX-2 'CWE' is not a v2\.5\.1 table 0125 value type/.test(w)));
+    assert.ok(!r.warnings.some((w) => /OBX-2 '(NM|SN|TM)' is not/.test(w)));
     const report = one(r, "DiagnosticReport");
     const interp = res(r, "Practitioner").find((p) => p.identifier?.[0]?.value === "5678");
     assert.ok(interp, "OBR-32 NDL → Practitioner");
@@ -229,7 +234,9 @@ describe("TS/DTM and TM", () => {
     assert.equal(toFhirDate("20260302"), "2026-03-02");
     assert.equal(toFhirDate("202603021015"), "2026-03-02T10:15:00");
     assert.equal(toFhirDate("20260302101530.1234+0530"), "2026-03-02T10:15:30.1234+05:30");
-    assert.equal(toFhirDate("20260302&D"), "2026-03-02", "TS.2 degree of precision is ignored");
+    assert.equal(toFhirDate("20260302&D"), undefined, "callers pass TS.1 only (tsComp for a TS inside a composite)");
+    assert.equal(toFhirDate("20260302 1015"), undefined, "no silent truncation");
+    assert.equal(toFhirDate("202603021015.5"), undefined, "a fraction needs seconds");
     for (const bad of ["20250229", "20261301", "20260302250000", "20260302101500+2500", "2026-03-02", "abc"]) {
       assert.equal(toFhirDate(bad), undefined, bad);
     }
@@ -241,7 +248,7 @@ describe("TS/DTM and TM", () => {
   test("an invalid PID-7 is reported, not converted to an impossible date", () => {
     const r = convert(ADT_A01.replace("|19620320|", "|19620230|"));
     assert.equal(one(r, "Patient").birthDate, undefined);
-    assert.ok(r.warnings.some((w) => /'19620230' is not a valid v2\.5\.1 TS/.test(w)));
+    assert.ok(r.warnings.some((w) => /'19620230' is not a valid v2\.5\.1 DTM/.test(w)));
   });
 });
 
@@ -269,6 +276,7 @@ describe("MSH and input validation", () => {
   test("MSH-9 must name a trigger; ACKs are not convertible; unknown types are out of scope", () => {
     rejects("MSH|^~\\&|A|B|C|D|20260101||ADT|1|P|2.5.1", /MSH-9/);
     rejects("MSH|^~\\&|A|B|C|D|20260101||ACK^A01^ACK|2|P|2.5.1\rMSA|AA|1", /acknowledgement/);
+    rejects("MSH|^~\\&|A|B|C|D|20260101||ACK|2|P|2.5.1\rMSA|AA|1", /acknowledgement/);
     rejects("MSH|^~\\&|A|B|C|D|20260101||VXU^V04^VXU_V04|3|P|2.5.1", /out of scope/);
   });
 
@@ -280,5 +288,54 @@ describe("MSH and input validation", () => {
     assert.equal(r.bundle.timestamp, undefined);
     const noVersion = convert(ADT_A01.replace("|P|2.5.1|", "|P||"));
     assert.ok(noVersion.warnings.some((w) => /MSH-12 \(version ID\) is empty/.test(w)));
+  });
+});
+
+// ─── Composite timestamps, character sets, unused delimiters ─────────────────
+
+describe("composites and character sets", () => {
+  const H = "MSH|^~\\&|A|GHH|B|GHH|20260301083000-0500||";
+
+  test("a TS inside a composite is read as TS.1&TS.2 (XPN.12/13, XAD.13/14, CX.7/8, DR, TQ.4)", () => {
+    const ctx = parse(`${H}ADT^A04^ADT_A01|1|P|2.5.1`).ctx;
+    assert.equal(tsComp(ctx)("x^20260302&D^y", 2), "20260302");
+    const r = convert(msg(
+      `${H}ADT^A04^ADT_A01|TS1|P|2.5.1`,
+      "PID|1||MRN1^^^GHH^MR^^20200101^20301231||DOE^JANE^^^^^L^^^^^20200615&D^20250615&D||19800101|F|||&MAIN ST&12^^SPRINGFIELD^IL^62701^USA^H^^^^^^20210101&D",
+      "PV1|1|O"
+    ));
+    const p = one(r, "Patient");
+    assert.deepEqual(p.identifier[0].period, { start: "2020-01-01", end: "2030-12-31" });
+    assert.deepEqual(p.name[0].period, { start: "2020-06-15", end: "2025-06-15" });
+    assert.deepEqual(p.address[0].line, ["12 MAIN ST"], "SAD.3 + SAD.2 when SAD.1 is empty");
+    assert.deepEqual(p.address[0].period, { start: "2021-01-01" });
+    const orm = convert(msg(
+      `${H}ORM^O01^ORM_O01|TS2|P|2.5.1`,
+      "PID|1||MRN1^^^GHH^MR",
+      seg("ORC", { 1: "NW", 2: "PL1^EMR", 5: "SC", 7: "1^^^20260310090000-0500&M^^S~1^^^20260311090000-0500^^R" })
+    ));
+    const sr = one(orm, "ServiceRequest");
+    assert.equal(sr.occurrenceDateTime, "2026-03-10T09:00:00-05:00", "first TQ repetition, TQ.4 TS.1");
+    assert.equal(sr.priority, "stat");
+  });
+
+  test("hex escapes in an unsupported MSH-18 character set are kept and reported", () => {
+    const r = convert(msg(`${H}ORU^R01^ORU_R01|CS1|P|2.5.1||||||UNICODE UTF-16`, "PID|1||MRN1^^^GHH^MR", "OBR|1|P1|F1|X^Y^99L", "OBX|1|ST|X^Y^99L||caf\\X00E9\\||||||F"));
+    assert.equal(obsByCode(r, "X").valueString, "caf\\X00E9\\");
+    assert.ok(r.warnings.some((w) => /MSH-18 character set 'UNICODE UTF-16' is not supported/.test(w)));
+    assert.equal(unesc("caf\\XE9\\", { escChar: "\\", charset: "8859/1" }), "café");
+  });
+
+  test("an unused delimiter never splits (no fallback to the default ^)", () => {
+    assert.equal(sub({ compSep: "^", escChar: "\\" })("a^b", 1), "a^b");
+  });
+
+  test("AL1 with an empty or unknown AL1-2 gets no AllergyIntolerance.type", () => {
+    const allergy = (type) =>
+      one(convert(msg(`${H}ADT^A01^ADT_A01|AL${type}|P|2.5.1`, "PID|1||MRN1^^^GHH^MR", "PV1|1|I", `AL1|1|${type}|X^Latex^99L`)), "AllergyIntolerance");
+    assert.equal(allergy("").type, undefined);
+    assert.equal(allergy("ZZ").type, undefined);
+    assert.equal(allergy("MC").type, undefined, "a contraindication is not an allergy");
+    assert.equal(allergy("MA").type, "allergy");
   });
 });

@@ -4,7 +4,7 @@
  * the v2.5.1 field definitions.
  */
 import { TERM } from "../maps.js";
-import { c, rawComp, reps, unesc, toFhirDate, zonelessTime, first, all } from "./util.js";
+import { c, tsComp, reps, unesc, toFhirDate, zonelessTime, first, all, MessageError } from "./util.js";
 import { toCodeableConcept, toIdentifierEI } from "./datatypes.js";
 import { conditional } from "./bundle.js";
 import { buildPatient, buildEncounter, practitionerRef, locationRef } from "./segments.js";
@@ -35,7 +35,7 @@ export function convertSIU(segs, ctx, b, trigger, { participantStatus } = {}) {
   const pstatus = () => (participantStatus ? { status: participantStatus } : { _status: unknownCode() });
   const g = c(ctx);
   const sch = first(segs, "SCH");
-  if (!sch) throw new Error("SIU message has no SCH segment; there is no appointment to convert.");
+  if (!sch) throw new MessageError("SIU message has no SCH segment; there is no appointment to convert.");
 
   const pid = first(segs, "PID");
   let patient = null;
@@ -85,8 +85,9 @@ export function convertSIU(segs, ctx, b, trigger, { participantStatus } = {}) {
 
   // Timing: TQ1-7/8 (preferred in v2.5.1) else SCH-11 (TQ, retained for backward compatibility) components 4/5.
   const tq1 = first(segs, "TQ1");
-  const tqStart = toFhirDate(g(tq1?.f(7) ?? "", 1)) ?? toFhirDate(rawComp(sch.f(11), 4, ctx.compSep).split(ctx.subSep)[0]);
-  const tqEnd = toFhirDate(g(tq1?.f(8) ?? "", 1)) ?? toFhirDate(rawComp(sch.f(11), 5, ctx.compSep).split(ctx.subSep)[0]);
+  const sch11 = reps(sch.f(11), ctx.repSep)[0] ?? "";
+  const tqStart = toFhirDate(g(tq1?.f(7) ?? "", 1)) ?? toFhirDate(tsComp(ctx)(sch11, 4));
+  const tqEnd = toFhirDate(g(tq1?.f(8) ?? "", 1)) ?? toFhirDate(tsComp(ctx)(sch11, 5));
   const ais = all(segs, "AIS");
   const aisStart = ais.map((s) => toFhirDate(g(s.f(4), 1))).find(Boolean);
   const startRaw = tqStart ?? aisStart;

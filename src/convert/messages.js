@@ -17,16 +17,16 @@ import {
 /** ADT^A01/A04/A05/A08/A28/A31/A40 → transaction Bundle. */
 function convertADT(segs, ctx, b, trigger) {
   const pid = first(segs, "PID");
-  if (!pid) throw new Error("ADT message has no PID segment; there is nothing to convert.");
+  if (!pid) throw new MessageError("ADT message has no PID segment; there is nothing to convert.");
   const { handle: patient } = buildPatient(pid, first(segs, "PD1"), ctx, b);
 
   for (const nk1 of all(segs, "NK1")) buildContact(nk1, patient, ctx, b);
 
   if (trigger === "A40") {
     const mrg = first(segs, "MRG");
-    if (!mrg) throw new Error("ADT^A40 has no MRG segment; the losing identifier is unknown, so the merge cannot be converted.");
+    if (!mrg) throw new MessageError("ADT^A40 has no MRG segment; the losing identifier is unknown, so the merge cannot be converted.");
     const priorIdentifier = toIdentifier(reps(mrg.f(1), ctx.repSep)[0] ?? "", ctx, b.warn);
-    if (!priorIdentifier) throw new Error("MRG-1 carried no usable identifier.");
+    if (!priorIdentifier) throw new MessageError("MRG-1 carried no usable identifier.");
     const retired = b.put("patient-retired", "Patient", {
       identifier: [priorIdentifier],
       active: false,
@@ -63,13 +63,13 @@ function convertADT(segs, ctx, b, trigger) {
 function convertORU(segs, ctx, b) {
   const g = c(ctx);
   const pid = first(segs, "PID");
-  if (!pid) throw new Error("ORU message has no PID segment; the result has no subject.");
+  if (!pid) throw new MessageError("ORU message has no PID segment; the result has no subject.");
   const { handle: patient } = buildPatient(pid, first(segs, "PD1"), ctx, b);
   const pv1 = first(segs, "PV1");
   const encounter = pv1 ? buildEncounter(pv1, first(segs, "EVN"), patient.reference, ctx, b) : null;
 
   const groups = orderGroups(segs, ["ORC", "OBR"]);
-  if (!groups.length) throw new Error("ORU message has no OBR segment; there is no report to convert.");
+  if (!groups.length) throw new MessageError("ORU message has no OBR segment; there is no report to convert.");
 
   groups.forEach((group, i) => {
     const n = i + 1;
@@ -150,6 +150,8 @@ function convertParsed({ ctx, segs }, options) {
   const g = c(ctx);
   const type = g(msh.f(9), 1).toUpperCase();
   const trigger = g(msh.f(9), 2).toUpperCase();
+  if (type === "ACK") throw new MessageError("This is an acknowledgement (ACK); it carries no clinical content to convert.");
+  if (type && !SUPPORTED_TYPES.includes(type)) throw new MessageError(`Message type '${type}' (MSH-9) is out of scope. This server converts ${SUPPORTED_TYPES.join(", ")} messages.`);
   if (!type || !trigger) throw new MessageError(`MSH-9 (message type) must give the message code and trigger event, e.g. ADT^A01^ADT_A01; got '${unesc(msh.f(9), ctx) || "(empty)"}'.`);
   const controlId = g(msh.f(10), 1);
   const version = g(msh.f(12), 1);
@@ -176,13 +178,11 @@ function convertParsed({ ctx, segs }, options) {
 
   let result;
   const messageType = `${type}^${trigger}`;
-  if (type === "ACK") throw new MessageError("This is an acknowledgement (ACK); it carries no clinical content to convert.");
   if (type === "ADT") result = convertADT(segs, ctx, b, trigger);
   else if (type === "ORM" || type === "OML" || type === "OMI") result = convertOrders(segs, ctx, b, type);
   else if (type === "ORU") result = convertORU(segs, ctx, b);
   else if (type === "SIU") result = convertSIU(segs, ctx, b, trigger, options);
-  else if (type === "MDM") result = convertMDM(segs, ctx, b, trigger);
-  else throw new Error(`Message type '${messageType}' is out of scope. This server converts ${SUPPORTED_TYPES.join(", ")} messages.`);
+  else result = convertMDM(segs, ctx, b, trigger);
 
   if (type === "ADT" && !MESSAGE_MAPS[messageType]) {
     b.warn(`ADT^${trigger} has no dedicated profile here; it was converted with the generic ADT rules (Patient + Encounter). Documented triggers: A01, A04, A08, A31, A40.`);

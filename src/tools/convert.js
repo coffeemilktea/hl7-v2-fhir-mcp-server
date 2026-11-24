@@ -57,8 +57,8 @@ export function register(server) {
       try {
         result = convert(message, { participantStatus });
       } catch (err) {
-        // MessageError / Error = a problem with the message; TypeError etc. = a defect in this server.
-        if (err instanceof MessageError || err.constructor === Error) return fail(`Conversion failed: ${err.message}`);
+        // MessageError = a problem with the message; anything else is a defect in this server.
+        if (err instanceof MessageError) return fail(`Conversion failed: ${err.message}`);
         return fail(`Internal error while converting (please report it with a synthetic copy of the message): ${err.name}: ${err.message}`);
       }
       const summary = {

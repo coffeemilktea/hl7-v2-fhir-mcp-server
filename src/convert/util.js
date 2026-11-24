@@ -1,11 +1,13 @@
 /**
  * HL7 v2.5.1 message reading for the converters: delimiters from MSH-1/MSH-2,
- * segment splitting, the HL7 null (""), escape decoding and TS/DTM checks.
- * Field and component splitting reuse the shared hl7v2-core primitives.
+ * segment splitting, the HL7 null (""), escape decoding and TS/DTM/TM checks.
+ *
+ * This module deliberately does not use the hl7v2-core parser or its TS helpers:
+ * it is stricter than the core (it rejects invalid or duplicate delimiters,
+ * treats a missing MSH-2 character as "not used" instead of defaulting it, and
+ * records which fields carried the HL7 null), and it behaves the same whichever
+ * hl7v2-core revision is installed.
  */
-import { comp, toFhirDate as coreToFhirDate, checkTimestamp, zonelessTime } from "hl7v2-core";
-
-export { zonelessTime };
 
 /** Largest message accepted (characters). Larger input is almost certainly not one message. */
 export const MAX_MESSAGE_CHARS = 1_000_000;
@@ -14,10 +16,10 @@ export const MAX_MESSAGE_CHARS = 1_000_000;
 export class MessageError extends Error {}
 
 /** The HL7 null: a field or component sent as exactly "" means "delete the stored value". */
-export const HL7_NULL = '""';
-const isNull = (v) => typeof v === "string" && v.trim() === HL7_NULL;
+const isNull = (v) => typeof v === "string" && v.trim() === '""';
 
 const SEGMENT_ID = /^[A-Z][A-Z0-9]{2}$/;
+const NOT_A_DELIMITER = /[A-Za-z0-9\s]/;
 
 // ─── Diagnostics sink ────────────────────────────────────────────────────────
 // Conversion is synchronous, so one module-level sink collects parse-level
@@ -43,28 +45,27 @@ const diag = (msg) => {
 /**
  * Read the delimiters from MSH-1 (the character after "MSH") and MSH-2 (the
  * encoding characters up to the next field separator): component, repetition,
- * escape, subcomponent, in that order. A shorter MSH-2 means the missing
- * delimiters are not used; v2.5.1 defines exactly four.
+ * escape, subcomponent, in that order. v2.5.1 requires all four; when fewer are
+ * sent, the missing delimiters are treated as not used (and reported).
  */
-export function delimiters(mshLine) {
+function delimiters(mshLine) {
   if (!/^MSH/.test(mshLine) || mshLine.length < 4) throw new MessageError("Message must begin with an MSH segment (MSH followed by the field separator).");
   const fieldSep = mshLine[3];
-  if (/[A-Za-z0-9\s]/.test(fieldSep)) throw new MessageError(`MSH-1 field separator '${fieldSep}' is not valid: it must be a single non-alphanumeric, non-whitespace character (normally '|').`);
+  if (NOT_A_DELIMITER.test(fieldSep)) throw new MessageError(`MSH-1 field separator '${fieldSep}' is not valid: it must be a single non-alphanumeric, non-whitespace character (normally '|').`);
   const enc = mshLine.slice(4).split(fieldSep)[0];
   if (!enc) throw new MessageError("MSH-2 (encoding characters) is empty. v2.5.1 requires the component, repetition, escape and subcomponent characters, normally ^~\\&.");
   const chars = [...enc];
-  const all = [fieldSep, ...chars.slice(0, 4)];
-  if (new Set(all).size !== all.length) throw new MessageError(`MSH-1/MSH-2 delimiters '${fieldSep}${enc}' are not all distinct.`);
-  if (chars.some((ch) => /[A-Za-z0-9\s]/.test(ch))) throw new MessageError(`MSH-2 '${enc}' contains a letter, digit or whitespace; encoding characters must be punctuation (normally ^~\\&).`);
-  const ctx = { fieldSep, compSep: chars[0], repSep: chars[1], escChar: chars[2], subSep: chars[3], encoding: enc };
+  if (chars.some((ch) => NOT_A_DELIMITER.test(ch))) throw new MessageError(`MSH-2 '${enc}' contains a letter, digit or whitespace; encoding characters must be punctuation (normally ^~\\&).`);
+  const used = [fieldSep, ...chars.slice(0, 4)];
+  if (new Set(used).size !== used.length) throw new MessageError(`MSH-1/MSH-2 delimiters '${fieldSep}${enc}' are not all distinct.`);
   if (chars.length !== 4) {
-    diag(`MSH-2 '${enc}' has ${chars.length} encoding character(s); v2.5.1 defines exactly 4 (component, repetition, escape, subcomponent). ${chars.length < 4 ? "The missing delimiters were treated as unused." : "The extra characters (a v2.7+ truncation character?) were ignored."}`);
+    diag(`MSH-2 '${enc}' has ${chars.length} encoding character(s); v2.5.1 requires exactly 4 (component, repetition, escape, subcomponent). ${chars.length < 4 ? "The missing delimiters were treated as not used." : "The extra characters were ignored."}`);
   }
-  return ctx;
+  return { fieldSep, compSep: chars[0], repSep: chars[1], escChar: chars[2], subSep: chars[3], encoding: enc };
 }
 
 /** 1-based field accessor with the MSH numbering quirk (MSH-1 is the separator itself, MSH-2 the encoding characters). */
-function fieldAccessor(name, line, ctx, nulls) {
+function fieldAccessor(name, line, ctx) {
   const parts = line.split(ctx.fieldSep);
   const isMsh = name === "MSH";
   return (n) => {
@@ -72,7 +73,7 @@ function fieldAccessor(name, line, ctx, nulls) {
     if (isMsh && n === 2) return ctx.encoding;
     const v = (isMsh ? parts[n - 1] : parts[n]) ?? "";
     if (isNull(v)) {
-      nulls.add(`${name}-${n}`);
+      ctx.nulls.add(`${name}-${n}`);
       return "";
     }
     return v;
@@ -92,8 +93,7 @@ export function parse(message) {
   if (!lines.length) throw new MessageError("Message is empty: no segments found.");
   lines[0] = lines[0].trimStart();
   if (/^(FHS|BHS)/.test(lines[0])) throw new MessageError("This is an HL7 batch (FHS/BHS). Convert one message at a time: from its MSH up to the next MSH.");
-  const ctx = delimiters(lines[0]);
-  ctx.nulls = new Set();
+  const ctx = { ...delimiters(lines[0]), nulls: new Set(), nullComponent: false };
   const segs = [];
   lines.forEach((line, i) => {
     const name = line.slice(0, 3);
@@ -102,31 +102,46 @@ export function parse(message) {
       return;
     }
     if (name === "MSH" && segs.length) throw new MessageError(`The input holds more than one message (another MSH at line ${i + 1}). Convert one message at a time.`);
-    segs.push({ index: segs.length, name, line, f: fieldAccessor(name, line, ctx, ctx.nulls) });
+    segs.push({ index: segs.length, name, line, f: fieldAccessor(name, line, ctx) });
   });
-  // MSH-18 (first repetition) decides how \Xhh\ bytes are read; the default is ASCII / ISO 8859-1.
-  ctx.charset = rawComp(reps(segs[0].f(18), ctx.repSep)[0] ?? "", 1, ctx.compSep);
+  // MSH-18 (first repetition) decides how \Xhh\ bytes are read; empty means ASCII.
+  ctx.charset = rawComp(reps(segs[0].f(18), ctx.repSep)[0] ?? "", 1, ctx.compSep).toUpperCase();
   return { ctx, segs };
 }
 
 // ─── Components, repetitions and escapes ─────────────────────────────────────
 
-/** Component n (1-based) of a raw value, trimmed, not unescaped. */
-export const rawComp = (val, n, sep) => comp(val, n, sep);
+/** Split on a delimiter; an unused (undefined) delimiter means no split. */
+const splitOn = (val, sep) => (sep ? String(val ?? "").split(sep) : [String(val ?? "")]);
+/** Component (or subcomponent) n, 1-based, of a raw value: trimmed, not unescaped. */
+export const rawComp = (val, n, sep) => (splitOn(val, sep)[n - 1] ?? "").trim();
 /** Non-empty repetitions of a raw field value (the HL7 null counts as empty). */
-export const reps = (val, sep) => (val ?? "").split(sep ?? "\u0000").filter((x) => x.trim().length > 0 && !isNull(x));
+export const reps = (val, sep) => splitOn(val, sep).filter((x) => x.trim().length > 0 && !isNull(x));
 
-/** Bytes of a \Xhh..\ sequence, decoded in the message character set (MSH-18). */
+/** MSH-18 values (table 0211) whose \Xhh\ bytes this server can decode, and how. */
+const HEX_DECODERS = {
+  "": "latin1", // MSH-18 empty: ASCII, the v2.5.1 default
+  ASCII: "latin1",
+  "8859/1": "latin1",
+  "UNICODE UTF-8": "utf8",
+};
+
+/** Bytes of a \Xhh..\ sequence in the message character set (MSH-18), or undefined when that set is not supported. */
 function hexText(hex, ctx) {
-  const buf = Buffer.from(hex, "hex");
-  return /UTF-?8/i.test(ctx.charset ?? "") ? buf.toString("utf8") : buf.toString("latin1");
+  const encoding = HEX_DECODERS[ctx.charset ?? ""];
+  if (!encoding) {
+    diag(`MSH-18 character set '${ctx.charset}' is not supported for \\X..\\ hex escapes (only ASCII, 8859/1 and UNICODE UTF-8); they were kept verbatim.`);
+    return undefined;
+  }
+  return Buffer.from(hex, "hex").toString(encoding);
 }
 
 /**
- * Decode the v2.5.1 escape sequences: \F\ \S\ \T\ \R\ \E\, \Xhh..\ (in the
- * MSH-18 character set), \H\ \N\ (dropped), and the formatting commands
- * \.br\ \.sp n\ \.ce\ (line breaks) and \.fi\ \.nf\ \.in\ \.ti\ \.sk n\.
- * Unknown sequences (\Cxxyy\, \Mxxyyzz\, \Z..\) are kept verbatim.
+ * Decode the v2.5.1 escape sequences (section 2.7): \F\ \S\ \T\ \R\ \E\,
+ * \Xhh..\ (in the MSH-18 character set), \H\ \N\ (highlighting, dropped) and
+ * the formatting commands: \.br\, \.sp n\ and \.ce\ become line breaks,
+ * \.sk n\ spaces; \.fi\ \.nf\ \.in n\ \.ti n\ are dropped. Unknown or
+ * unsupported sequences (\Cxxyy\, \Mxxyyzz\, \Z..\) are kept verbatim.
  */
 export function unesc(value, ctx) {
   if (value === undefined || value === null) return "";
@@ -146,8 +161,8 @@ export function unesc(value, ctx) {
       break;
     }
     const seq = s.slice(i + 1, end);
+    const count = () => Math.min(Number(/(\d+)$/.exec(seq)?.[1] ?? 1), 50);
     let rep;
-    const n = Number(/^\.(?:sp|sk)\s*\+?(\d+)$/.exec(seq)?.[1] ?? 1);
     if (seq === "F") rep = ctx.fieldSep;
     else if (seq === "S") rep = ctx.compSep;
     else if (seq === "T") rep = ctx.subSep;
@@ -156,14 +171,10 @@ export function unesc(value, ctx) {
     else if (seq === "H" || seq === "N") rep = "";
     else if (/^X(?:[0-9A-Fa-f]{2})+$/.test(seq)) rep = hexText(seq.slice(1), ctx);
     else if (seq === ".br" || seq === ".ce") rep = "\n";
-    else if (/^\.sp(\s*\+?\d+)?$/.test(seq)) rep = "\n".repeat(Math.min(n, 50));
-    else if (/^\.sk(\s*\+?\d+)?$/.test(seq)) rep = " ".repeat(Math.min(n, 200));
-    else if (/^\.(fi|nf|in|ti)([\s+-]*\d+)?$/.test(seq)) rep = "";
-    if (rep === undefined) {
-      out += s.slice(i, end + 1);
-    } else {
-      out += rep;
-    }
+    else if (/^\.sp(\s*\+?\d+)?$/.test(seq)) rep = "\n".repeat(count());
+    else if (/^\.sk(\s*\+?\d+)?$/.test(seq)) rep = " ".repeat(count());
+    else if (/^\.(fi|nf|in|ti)(\s*[+-]?\d+)?$/.test(seq)) rep = "";
+    out += rep ?? s.slice(i, end + 1);
     i = end;
   }
   return out;
@@ -183,42 +194,51 @@ export const sub = (ctx) => (val, n) => {
   const v = rawComp(val, n, ctx.subSep);
   return isNull(v) ? "" : unesc(v, ctx);
 };
+/** TS.1 of a TS carried as component n of a composite (TS.1 & TS.2 subcomponents), e.g. DR, XPN.12, CX.7. */
+export const tsComp = (ctx) => (val, n) => sub(ctx)(rawComp(val, n, ctx.compSep), 1);
 export const first = (segs, name) => segs.find((s) => s.name === name);
 export const all = (segs, name) => segs.filter((s) => s.name === name);
 
 // ─── Dates and times ─────────────────────────────────────────────────────────
 
+// v2.5.1 DTM / TS.1: YYYY[MM[DD[HH[MM[SS[.S[S[S[S]]]]]]]]][+/-ZZZZ]; the fraction only after seconds.
+const DTM_RE = /^(\d{4})(?:(\d{2})(?:(\d{2})(?:(\d{2})(?:(\d{2})(?:(\d{2})(\.\d{1,4})?)?)?)?)?)?([+-]\d{4})?$/;
+// v2.5.1 TM: HH[MM[SS[.S[S[S[S]]]]]][+/-ZZZZ].
+const TM_RE = /^(\d{2})(?:(\d{2})(?:(\d{2})(\.\d{1,4})?)?)?([+-]\d{4})?$/;
+const daysIn = (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate();
+const offsetOk = (tz) => !tz || (+tz.slice(1, 3) <= 14 && +tz.slice(3) <= 59);
+
 /**
- * v2.5.1 TS/DTM (or DT) → FHIR date | dateTime at the source precision, or
- * undefined when empty. An invalid value (bad format, impossible date, offset
- * out of range) is reported and yields undefined rather than a wrong date.
- * A TS that arrives as a component (TS.1&TS.2) is accepted: only TS.1 is read.
+ * v2.5.1 TS.1/DTM (or DT) → FHIR date | dateTime at the source precision
+ * (missing minutes/seconds are written as 00, which FHIR requires), or
+ * undefined when empty. An invalid value — wrong format, impossible date or
+ * offset — is reported and yields undefined rather than a wrong date. Callers
+ * pass TS.1 only (for a TS inside a composite, use tsComp).
  */
 export function toFhirDate(ts) {
-  let v = String(ts ?? "").trim();
+  const v = String(ts ?? "").trim();
   if (!v || isNull(v)) return undefined;
-  // TS.1 only: drop a TS.2 (degree of precision) sent as a subcomponent, whatever the separator.
-  v = /^([0-9.+-]*)(?:[^0-9A-Za-z.+-].*)?$/.exec(v)?.[1] ?? v;
-  const fhir = coreToFhirDate(v);
-  const check = checkTimestamp(v);
-  let valid = Boolean(fhir) && check.ok;
-  if (valid) {
-    const [y, mo, d] = [v.slice(0, 4), v.slice(4, 6), v.slice(6, 8)].map(Number);
-    if (v.length >= 8 && new Date(Date.UTC(y, mo - 1, d)).getUTCDate() !== d) valid = false;
-    const tz = /([+-])(\d{2})(\d{2})$/.exec(v);
-    if (tz && (+tz[2] > 14 || +tz[3] > 59)) valid = false;
-  }
+  const m = DTM_RE.exec(v);
+  const [, y, mo, d, h, mi, s, frac, tz] = m ?? [];
+  const valid =
+    m && (!mo || (+mo >= 1 && +mo <= 12)) && (!d || (+d >= 1 && +d <= daysIn(+y, +mo))) &&
+    (!h || +h <= 23) && (!mi || +mi <= 59) && (!s || +s <= 60) && offsetOk(tz);
   if (!valid) {
-    diag(`'${v}' is not a valid v2.5.1 TS/DTM (YYYY[MM[DD[HH[MM[SS[.S[S[S[S]]]]]]]]][+/-ZZZZ] with real calendar values); the element it feeds was omitted.`);
+    diag(`'${v}' is not a valid v2.5.1 DTM (YYYY[MM[DD[HH[MM[SS[.S[S[S[S]]]]]]]]][+/-ZZZZ] with real calendar values); the element it feeds was omitted.`);
     return undefined;
   }
-  return fhir;
+  if (!mo) return y;
+  if (!d) return `${y}-${mo}`;
+  if (!h) return `${y}-${mo}-${d}`;
+  return `${y}-${mo}-${d}T${h}:${mi ?? "00"}:${s ?? "00"}${frac ?? ""}${tz ? `${tz.slice(0, 3)}:${tz.slice(3)}` : ""}`;
 }
 
-/** v2.5.1 TM (HH[MM[SS[.S[S[S[S]]]]]][+/-ZZZZ]) → FHIR time (hh:mm:ss[.s]), or undefined. The offset has no place in FHIR time and is dropped. */
+/** True when a converted timestamp carries a time but no zone offset. */
+export const zonelessTime = (fhirDate) => Boolean(fhirDate && fhirDate.includes("T") && !/[+-]\d{2}:\d{2}$/.test(fhirDate));
+
+/** v2.5.1 TM → FHIR time (hh:mm:ss[.s]), or undefined. FHIR time has no offset, so a TM offset is dropped. */
 export function toFhirTime(tm) {
-  const v = String(tm ?? "").trim();
-  const m = /^(\d{2})(\d{2})?(\d{2})?(\.\d{1,4})?([+-]\d{4})?$/.exec(v);
-  if (!m || +m[1] > 23 || +(m[2] ?? 0) > 59 || +(m[3] ?? 0) > 59 || (m[4] && !m[3])) return undefined;
+  const m = TM_RE.exec(String(tm ?? "").trim());
+  if (!m || +m[1] > 23 || +(m[2] ?? 0) > 59 || +(m[3] ?? 0) > 59 || !offsetOk(m[5])) return undefined;
   return `${m[1]}:${m[2] ?? "00"}:${m[3] ?? "00"}${m[4] ?? ""}`;
 }

@@ -1,6 +1,6 @@
 /** Segment → FHIR resource builders. */
 import { CONCEPT_MAPS, TERM } from "../maps.js";
-import { c, sub, rawComp, reps, unesc, toFhirDate, toFhirTime, zonelessTime } from "./util.js";
+import { c, sub, tsComp, rawComp, reps, unesc, toFhirDate, toFhirTime, zonelessTime } from "./util.js";
 import { systemFrom, toCodeableConcept, toCodeableConcepts, toIdentifier, toIdentifierEI, toIdentifiersEIP, toHumanName, toAddress, toContactPoint } from "./datatypes.js";
 import { conditional } from "./bundle.js";
 
@@ -133,8 +133,8 @@ export function locationRef(pl, ctx, b, keyPrefix) {
   let parent;
   let path = [];
   for (const level of levels) {
-    const raw = level.comp === 4 ? rawComp(pl, 4, ctx.compSep).split(ctx.subSep)[0] : g(pl, level.comp);
-    const name = unesc((raw ?? "").trim(), ctx);
+    // PL.4 facility is HD: its namespace ID (subcomponent 1) names the site.
+    const name = level.comp === 4 ? sub(ctx)(rawComp(pl, 4, ctx.compSep), 1) : g(pl, level.comp);
     if (!name) continue;
     path.push(name);
     const handle = b.put(
@@ -236,7 +236,8 @@ export function buildAllergy(al1, patientRef, ctx, b, n) {
   const recorded = toFhirDate(g(al1.f(6), 1));
   b.put(`allergy:${n}`, "AllergyIntolerance", {
     clinicalStatus: { coding: [{ system: `${TERM}/allergyintolerance-clinical`, code: "active" }] },
-    ...(typeCode === "MC" ? {} : { type: "allergy" }),
+    // IG AllergyType map: every 0127 code except MC (a contraindication) is an allergy; an empty or unknown AL1-2 says nothing.
+    ...(CATEGORY[typeCode] || typeCode === "MA" ? { type: "allergy" } : {}),
     ...(category ? { category: [category] } : {}),
     code,
     patient: patientRef,
@@ -303,8 +304,8 @@ export function buildSpecimen(spm, patientRef, ctx, b, n) {
   const identifier = spmFiller ?? spmPlacer;
   const type = toCodeableConcept(spm.f(4), ctx, b.warn);
   // SPM-17 is DR (range start ^ range end, each a TS): a range end makes it collectedPeriod, as in the IG.
-  const collected = toFhirDate(rawComp(spm.f(17), 1, ctx.compSep));
-  const collectedEnd = toFhirDate(rawComp(spm.f(17), 2, ctx.compSep));
+  const collected = toFhirDate(tsComp(ctx)(spm.f(17), 1));
+  const collectedEnd = toFhirDate(tsComp(ctx)(spm.f(17), 2));
   const received = toFhirDate(g(spm.f(18), 1));
   const site = toCodeableConcept(spm.f(8), ctx, b.warn);
   const role = g(spm.f(11), 1).toUpperCase();
@@ -332,6 +333,8 @@ export function buildSpecimen(spm, patientRef, ctx, b, n) {
 /** HL7 NM: optional sign, digits, optional decimal point; no exponent. */
 const NM_RE = /^[+-]?(\d+\.?\d*|\.\d+)$/;
 const nm = (s) => (NM_RE.test(String(s ?? "").trim()) ? Number(String(s).trim()) : undefined);
+/** HL7 v2.5.1 table 0125 (Value Type), the values OBX-2 may carry. */
+const VALUE_TYPES_251 = new Set("AD CE CF CK CN CP CX DT ED FT MO NM PN RP SN ST TM TN TS TX XAD XCN XON XPN XTN".split(" "));
 /** SN-1 comparators that FHIR Quantity.comparator can carry. */
 const COMPARATORS = new Set(["<", "<=", ">=", ">"]);
 
@@ -347,6 +350,7 @@ export function observationValue(valueType, field, units, ctx, b, location) {
   const values = reps(field, ctx.repSep);
   if (!values.length) return undefined;
   if (!type) b.warn(`${location}: OBX-5 is valued but OBX-2 (value type) is empty, which v2.5.1 does not allow; the value was kept as text.`);
+  else if (!VALUE_TYPES_251.has(type)) b.warn(`${location}: OBX-2 '${type}' is not a v2.5.1 table 0125 value type (e.g. CWE, DTM and IS arrived in later versions); it was converted leniently.`);
   if (["ST", "TX", "FT"].includes(type) || !type) {
     return { valueString: values.map((v) => unesc(v, ctx)).join("\n") };
   }
@@ -516,10 +520,11 @@ export function buildServiceRequest(orc, obr, patientRef, encounter, ctx, b, key
     ?? reps(obr?.f(16) ?? "", ctx.repSep).map((r) => practitionerRef(r, ctx, b)).filter(Boolean)[0]
     ?? reps(orc?.f(10) ?? "", ctx.repSep).map((r) => practitionerRef(r, ctx, b)).filter(Boolean)[0];
 
-  const timing = orc?.f(7) || obr?.f(27) || "";
+  // ORC-7 / OBR-27 quantity/timing (TQ, repeating; kept for backward compatibility in v2.5.1, which prefers TQ1): first repetition.
+  const timing = reps(orc?.f(7) || obr?.f(27) || "", ctx.repSep)[0] ?? "";
   const priorityCode = g(timing, 6).toUpperCase();
   const PRIORITY = { S: "stat", A: "asap", R: "routine", P: "routine", C: "routine", T: "asap" };
-  const occurrence = toFhirDate(g(obr?.f(6) ?? "", 1)) ?? toFhirDate(g(timing, 4));
+  const occurrence = toFhirDate(g(obr?.f(6) ?? "", 1)) ?? toFhirDate(tsComp(ctx)(timing, 4));
 
   // OBR-31 reason for study (CE, repeating) → reasonCode; OBR-13 relevant clinical information is ST (free text) → note.
   const reason = toCodeableConcepts(obr?.f(31) ?? "", ctx, b.warn);
@@ -551,10 +556,8 @@ export function buildServiceRequest(orc, obr, patientRef, encounter, ctx, b, key
 export function ndlToXcn(ndl, ctx) {
   if (!ctx.subSep || !ctx.compSep) return ndl;
   const cnn = rawComp(ndl, 1, ctx.compSep).split(ctx.subSep);
-  const parts = cnn.slice(0, 8);
-  while (parts.length < 8) parts.push("");
-  const hd = cnn.slice(8, 11).join(ctx.subSep).replace(new RegExp(`\\${ctx.subSep}+$`), "");
-  return [...parts, hd].join(ctx.compSep);
+  const xcn = Array.from({ length: 8 }, (_, i) => cnn[i] ?? "");
+  return [...xcn, cnn.slice(8, 11).join(ctx.subSep)].join(ctx.compSep);
 }
 
 /** OBR → DiagnosticReport (ORU only). */

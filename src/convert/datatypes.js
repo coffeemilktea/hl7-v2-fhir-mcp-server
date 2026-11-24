@@ -1,6 +1,6 @@
 /** HL7 v2 datatype → FHIR datatype converters. */
 import { CONCEPT_MAPS, TERM } from "../maps.js";
-import { c, sub, rawComp, reps, unesc, toFhirDate } from "./util.js";
+import { c, sub, tsComp, rawComp, reps, unesc, toFhirDate } from "./util.js";
 
 /**
  * Resolve an HD-shaped namespace triple to an Identifier.system URI.
@@ -74,22 +74,25 @@ export function toIdentifier(value, ctx, warn) {
     ...(typeCode ? { type: { coding: [{ system: `${TERM}/v2-0203`, code: typeCode }] } } : {}),
     ...(system ? { system } : {}),
     value: id,
+    // CX.7/CX.8 effective and expiration date (DT).
+    ...period(value, ctx, 7, 8),
   };
 }
 
 /**
- * v2.5.1 table 0200 (XPN.7 name type) → HumanName.use. Only codes with a real
- * equivalent are mapped (as in the IG NameType ConceptMap, plus S Pseudonym →
- * anonymous); A Assigned, B Birth, C Adopted, I Licensing, P Partner,
- * T Indigenous/Tribal and U Unknown leave use empty rather than guessed.
+ * v2.5.1 table 0200 (XPN.7 name type) → HumanName.use: L Legal → official,
+ * R Registered (animals only) → official, D Display → usual, M Maiden,
+ * N Nickname, S Coded pseudo-name (anonymity) → anonymous. A Alias, B Name at
+ * birth, C Adopted, I Licensing, P Partner/spouse, T Indigenous/tribal and
+ * U Unspecified have no HumanName.use equivalent and leave it empty.
  */
 export const XPN_USE = { L: "official", R: "official", D: "usual", M: "maiden", N: "nickname", S: "anonymous" };
 
-/** Period from two DTM/TS components (validity range), or undefined. */
+/** { period } from two TS/DT components of a composite (effective / expiration), or {}. */
 const period = (value, ctx, from, to) => {
-  const g = c(ctx);
-  const start = toFhirDate(g(value, from));
-  const end = toFhirDate(g(value, to));
+  const ts = tsComp(ctx);
+  const start = toFhirDate(ts(value, from));
+  const end = toFhirDate(ts(value, to));
   return start || end ? { period: { ...(start ? { start } : {}), ...(end ? { end } : {}) } } : {};
 };
 
@@ -129,8 +132,10 @@ export const XAD_TYPE = { M: "postal" };
 export function toAddress(value, ctx) {
   const g = c(ctx);
   const s = sub(ctx);
-  // XAD.1 is SAD: street or mailing address & street name & dwelling number.
-  const street = s(rawComp(value, 1, ctx.compSep), 1);
+  // XAD.1 is SAD: street or mailing address & street name & dwelling number. SAD.1 is the
+  // whole line; when only SAD.2/SAD.3 are sent, the line is built from them.
+  const sad = rawComp(value, 1, ctx.compSep);
+  const street = s(sad, 1) || [s(sad, 3), s(sad, 2)].filter(Boolean).join(" ");
   const line = [street, g(value, 2)].filter(Boolean);
   const city = g(value, 3);
   const state = g(value, 4);
@@ -150,6 +155,8 @@ export function toAddress(value, ctx) {
     ...(state ? { state } : {}),
     ...(postalCode ? { postalCode } : {}),
     ...(country ? { country } : {}),
+    // XAD.13/XAD.14 effective and expiration date (XAD.12 is the deprecated DR form).
+    ...period(value, ctx, 13, 14),
   };
 }
 
@@ -159,7 +166,7 @@ export function toAddress(value, ctx) {
  * and NET network address say nothing about use. PRS is v2.6+, kept for senders on later versions.
  */
 export const XTN_USE = { PRN: "home", ORN: "home", VHN: "home", WPN: "work", BPN: "mobile", PRS: "mobile" };
-/** v2.5.1 table 0202 (XTN.3 equipment type) → ContactPoint.system. */
+/** Table 0202 (XTN.3 equipment type) → ContactPoint.system. TDD and TTY are v2.6+, kept for senders on later versions. */
 export const XTN_SYSTEM = { PH: "phone", FX: "fax", CP: "phone", BP: "pager", MD: "other", TDD: "other", TTY: "other", INTERNET: "email", "X.400": "email" };
 
 /** XTN → ContactPoint. `defaultUse` applies only when XTN.2 is empty (e.g. home for PID-13, work for PID-14). */

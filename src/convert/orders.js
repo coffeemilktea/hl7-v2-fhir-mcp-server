@@ -3,7 +3,7 @@
  *   ORM^O01 (general order), OML^O21 (laboratory order), OMI^O23 (imaging order).
  */
 import { TERM } from "../maps.js";
-import { c, reps, unesc, toFhirDate, first } from "./util.js";
+import { c, reps, unesc, toFhirDate, first, MessageError } from "./util.js";
 import { toCodeableConcept, toIdentifierEI } from "./datatypes.js";
 import { buildPatient, buildEncounter, buildObservation, buildSpecimen, buildServiceRequest, buildAllergy } from "./segments.js";
 import { igLookup } from "./igmaps.js";
@@ -129,7 +129,7 @@ function applyIpc(ipcs, request, patient, encounter, ctx, b, n) {
 export function convertOrders(segs, ctx, b, type) {
   const g = c(ctx);
   const pid = first(segs, "PID");
-  if (!pid) throw new Error(`${type} message has no PID segment; the order has no subject.`);
+  if (!pid) throw new MessageError(`${type} message has no PID segment; the order has no subject.`);
   const { handle: patient } = buildPatient(pid, first(segs, "PD1"), ctx, b);
   const pv1 = first(segs, "PV1");
   const encounter = pv1 ? buildEncounter(pv1, first(segs, "EVN"), patient.reference, ctx, b) : null;
@@ -142,7 +142,7 @@ export function convertOrders(segs, ctx, b, type) {
   }
 
   const groups = orderGroups(segs, ["ORC", "OBR"]);
-  if (!groups.length) throw new Error(`${type} message has no ORC segment; there is no order to convert.`);
+  if (!groups.length) throw new MessageError(`${type} message has no ORC segment; there is no order to convert.`);
 
   groups.forEach((group, i) => {
     const n = i + 1;

@@ -4,7 +4,7 @@
  * against the v2.5.1 field definitions.
  */
 import { TERM } from "../maps.js";
-import { c, rawComp, reps, unesc, toFhirDate, zonelessTime, first, all } from "./util.js";
+import { c, rawComp, reps, unesc, toFhirDate, zonelessTime, first, all, MessageError } from "./util.js";
 import { toIdentifierEI } from "./datatypes.js";
 import { conditional } from "./bundle.js";
 import { buildPatient, buildEncounter, buildServiceRequest, practitionerRef } from "./segments.js";
@@ -74,9 +74,9 @@ function contentFrom(obxRows, ctx, b) {
 export function convertMDM(segs, ctx, b, trigger) {
   const g = c(ctx);
   const pid = first(segs, "PID");
-  if (!pid) throw new Error("MDM message has no PID segment; the document has no subject.");
+  if (!pid) throw new MessageError("MDM message has no PID segment; the document has no subject.");
   const txa = first(segs, "TXA");
-  if (!txa) throw new Error("MDM message has no TXA segment; there is no document to convert.");
+  if (!txa) throw new MessageError("MDM message has no TXA segment; there is no document to convert.");
   const { handle: patient } = buildPatient(pid, first(segs, "PD1"), ctx, b);
   const pv1 = first(segs, "PV1");
   const encounter = pv1 ? buildEncounter(pv1, first(segs, "EVN"), patient.reference, ctx, b, { trigger }) : null;
